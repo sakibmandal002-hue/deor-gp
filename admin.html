@@ -20,9 +20,9 @@
     }
 
     button {
-      padding: 8px 12px;
+      padding: 6px 10px;
       cursor: pointer;
-      margin-left: 5px;
+      margin: 2px;
     }
 
     table {
@@ -60,9 +60,9 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 SAME CONFIG
+// CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
@@ -72,12 +72,11 @@ const firebaseConfig = {
   appId: "1:119940582286:web:f39346b6cc185809a232df"
 };
 
-// INIT
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 🔒 AUTH CHECK
+// AUTH CHECK
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     alert("Login Required");
@@ -85,10 +84,10 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// DATA STORE
+// STORE
 let allData = [];
 
-// 🔥 LOAD DATA
+// LOAD DATA
 async function loadData(){
 
   const snapshot = await getDocs(collection(db, "applications"));
@@ -106,9 +105,11 @@ async function loadData(){
 
   allData = [];
 
-  snapshot.forEach(doc=>{
-    let d = doc.data();
-    allData.push(d);
+  snapshot.forEach(docSnap=>{
+    let d = docSnap.data();
+    let id = docSnap.id;
+
+    allData.push({...d, docId:id});
 
     table.innerHTML += `
       <tr>
@@ -121,6 +122,8 @@ async function loadData(){
         }</td>
         <td>
           <button onclick='viewCert(${JSON.stringify(d)})'>View</button>
+          <button onclick="rejectApp('${id}')">Reject</button>
+          <button onclick="deleteApp('${id}')">Delete</button>
         </td>
       </tr>
     `;
@@ -128,11 +131,10 @@ async function loadData(){
 
 }
 
-// 🔍 SEARCH
+// SEARCH
 window.searchData = function(){
 
   let val = document.getElementById("search").value.toLowerCase();
-
   let table = document.getElementById("table");
 
   table.innerHTML = `
@@ -158,6 +160,8 @@ window.searchData = function(){
         }</td>
         <td>
           <button onclick='viewCert(${JSON.stringify(d)})'>View</button>
+          <button onclick="rejectApp('${d.docId}')">Reject</button>
+          <button onclick="deleteApp('${d.docId}')">Delete</button>
         </td>
       </tr>
     `;
@@ -165,15 +169,39 @@ window.searchData = function(){
 
 }
 
-// 📄 VIEW CERTIFICATE
+// VIEW
 window.viewCert = function(data){
-
   localStorage.setItem("certData", JSON.stringify(data));
   window.open("view.html", "_blank");
+}
+
+// ❌ REJECT
+window.rejectApp = async function(id){
+
+  if(confirm("Reject this application?")){
+    await updateDoc(doc(db, "applications", id), {
+      status: "rejected"
+    });
+
+    alert("Application Rejected");
+    loadData();
+  }
 
 }
 
-// 🚪 LOGOUT
+// 🗑 DELETE
+window.deleteApp = async function(id){
+
+  if(confirm("Delete permanently?")){
+    await deleteDoc(doc(db, "applications", id));
+
+    alert("Deleted Successfully");
+    loadData();
+  }
+
+}
+
+// LOGOUT
 window.logout = function(){
   signOut(auth).then(()=>{
     window.location.href = "login.html";
