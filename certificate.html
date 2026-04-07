@@ -120,7 +120,7 @@
 
 // HOME
 function goHome(){
-  window.location.href = "index.html";
+  window.location.href = "./index.html";
 }
 
 // RESET
@@ -130,9 +130,11 @@ function resetForm(){
 
 // CREATE HEIRS
 function createHeirs(){
-  let c = document.getElementById("count").value;
+  let c = parseInt(document.getElementById("count").value) || 0;
   let h = document.getElementById("heirs");
   h.innerHTML = "";
+
+  if(c <= 0) return;
 
   for(let i=1;i<=c;i++){
     h.innerHTML += `
@@ -150,13 +152,44 @@ function createHeirs(){
 
 // VALUE
 function val(id){
-  return document.getElementById(id)?.value || "-";
+  let el = document.getElementById(id);
+  return el && el.value ? el.value : "-";
 }
 
 // GENERATE
 function generate(){
 
-  let c = document.getElementById("count").value;
+  let c = parseInt(document.getElementById("count").value) || 0;
+
+  if(c <= 0){
+    alert("Please enter number of heirs");
+    return;
+  }
+
+  let rows = "";
+
+  for(let i=1;i<=c;i++){
+    rows += `
+      <tr>
+        <td>${i}</td>
+        <td>${val("name"+i)}</td>
+        <td>${val("age"+i)}</td>
+        <td>${val("rel"+i)}</td>
+        <td>${val("addr"+i)}</td>
+        <td>${val("epic"+i)}</td>
+      </tr>
+    `;
+  }
+
+ function generate(){
+
+  let c = parseInt(document.getElementById("count").value) || 0;
+
+  if(c <= 0){
+    alert("Please enter number of heirs");
+    return;
+  }
+
   let rows = "";
 
   for(let i=1;i<=c;i++){
@@ -174,6 +207,9 @@ function generate(){
 
   document.getElementById("output").innerHTML = `
   
+  <!-- PAGE 1: APPLICATION -->
+  <div style="page-break-after: always;">
+
   <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
 
   <p>
@@ -184,7 +220,7 @@ function generate(){
   Dist-Dakshin Dinajpur, Pin-733140
   </p>
 
-  <p><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
+  <p style="text-align:center;"><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
 
   <p>
   <b>Name of the Applicant:</b> ${val("app_name")}<br>
@@ -217,22 +253,6 @@ function generate(){
 
   <p><b>Purpose of Certificate:</b> Official Purpose</p>
 
-  <h4>List of Documents Attached</h4>
-
-  <p>
-  ☐ Death Certificate<br>
-  ☐ Identity Proof (Aadhaar/PAN/Voter ID)<br>
-  ☐ Address Proof<br>
-  ☐ Self-Declaration / Undertaking
-  </p>
-
-  <br>
-
-  <h4>Declaration</h4>
-  <p>
-  I hereby declare that the information above is true to the best of my knowledge and belief.
-  </p>
-
   <br>
 
   <div style="display:flex; justify-content:space-between;">
@@ -244,35 +264,67 @@ function generate(){
 
   <p style="text-align:right;">Signature of Applicant</p>
 
+  </div>
+
+
+  <!-- PAGE 2: SELF DECLARATION -->
+  <div>
+
+  <h2 style="text-align:center;">SELF DECLARATION</h2>
+
+  <p>
+  I, <b>${val("app_name")}</b>, son/daughter of <b>${val("father_name")}</b>, 
+  resident of <b>${val("app_address")}</b>, do hereby solemnly affirm and declare that:
+  </p>
+
+  <ol>
+    <li>That Late <b>${val("dead_name")}</b>, son/daughter/spouse of <b>${val("relation_name")}</b>, 
+    resident of <b>${val("dead_address")}</b>, expired on ________.</li>
+
+    <li>That the following persons are the only legal heirs of the deceased:</li>
+  </ol>
+
+  <table border="1" width="100%" cellspacing="0" cellpadding="5">
+    <tr>
+      <th>Sl No</th>
+      <th>Name</th>
+      <th>Relation</th>
+    </tr>
+    ${
+      Array.from({length: c}, (_,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td>${val("name"+(i+1))}</td>
+        <td>${val("rel"+(i+1))}</td>
+      </tr>
+      `).join("")
+    }
+  </table>
+
+  <br>
+
+  <ol start="3">
+    <li>That I declare that the above information is true and correct.</li>
+    <li>That nothing has been concealed.</li>
+  </ol>
+
   <br><br>
 
-  <!-- Witness -->
   <div style="display:flex; justify-content:space-between;">
-    
-    <div>
-      <b>Witness</b><br><br>
-      1. ___________________<br><br>
-      2. ___________________<br><br>
-      3. ___________________
-    </div>
-
-    <div>
-      <br><br>
-      4. ___________________<br><br>
-      5. ___________________<br><br>
-      6. ___________________
-    </div>
-
+    <div>Date: ____________</div>
+    <div>Place: ____________</div>
   </div>
 
-  <br><br><br>
+  <br><br>
 
-  <div style="display:flex; justify-content:space-between;">
-    <div>Member Signature</div>
-    <div>Prodhan Signature</div>
+  <p style="text-align:right;">
+  Signature of Deponent<br><br>
+  (${val("app_name")})
+  </p>
+
   </div>
-
   `;
+
 
   document.getElementById("printBtn").style.display = "block";
 }
