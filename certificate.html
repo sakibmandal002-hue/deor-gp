@@ -11,7 +11,121 @@
     body {
       font-family: Arial;
       margin: 0;
-      background: #f4f4f4;
+      background: #f4f4f4;<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔥 CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
+  authDomain: "deor-gp.firebaseapp.com",
+  projectId: "deor-gp",
+  appId: "1:119940582286:web:f39346b6cc185809a232df"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// VALUE
+function val(id){
+  return document.getElementById(id)?.value || "-";
+}
+
+// CREATE HEIRS
+window.createHeirs = function(){
+  let c = parseInt(document.getElementById("count").value) || 0;
+  let h = document.getElementById("heirs");
+  h.innerHTML = "";
+
+  for(let i=1;i<=c;i++){
+    h.innerHTML += `
+      <div class="box">
+        <h4>Heir ${i}</h4>
+        <input id="name${i}" placeholder="Name">
+        <input id="age${i}" placeholder="Age">
+        <input id="rel${i}" placeholder="Relation">
+        <input id="addr${i}" placeholder="Address">
+        <input id="epic${i}" placeholder="EPIC">
+      </div>
+    `;
+  }
+}
+
+// 🔥 GENERATE + SAVE
+window.generate = async function(){
+
+  let c = parseInt(document.getElementById("count").value);
+
+  if(!c || c <= 0){
+    alert("Please enter number of heirs");
+    return;
+  }
+
+  let heirsData = [];
+
+  for(let i=1;i<=c;i++){
+    heirsData.push({
+      name: val("name"+i),
+      age: val("age"+i),
+      relation: val("rel"+i),
+      address: val("addr"+i),
+      epic: val("epic"+i)
+    });
+  }
+
+  let now = new Date();
+  let year = now.getFullYear();
+  let ackID = `${year}-DGP-LHA-${Date.now().toString().slice(-6)}`;
+
+  try{
+
+    await addDoc(collection(db, "applications"), {
+      ackID: ackID,
+      applicant: val("app_name"),
+      fatherName: val("father_name"),
+      address: val("app_address"),
+      deceased: val("dead_name"),
+      relation: val("relation_name"),
+      deadAddress: val("dead_address"),
+      heirs: heirsData,
+      status: "pending",
+      createdAt: now
+    });
+
+    // OUTPUT
+    document.getElementById("output").innerHTML = `
+      <h2 style="text-align:center;">Application Submitted</h2>
+      <p style="color:green;"><b>ID:</b> ${ackID}</p>
+    `;
+
+    document.getElementById("printBtn").style.display = "block";
+
+    alert("✅ Application Submitted Successfully!");
+
+  }catch(err){
+    console.error(err);
+    alert("❌ Error: " + err.message);
+  }
+
+}
+
+// PRINT
+window.printPage = function(){
+  window.print();
+}
+
+// HOME
+window.goHome = function(){
+  window.location.href = "index.html";
+}
+
+// RESET
+window.resetForm = function(){
+  location.reload();
+}
+
+</script>
     }
 
     @page {
