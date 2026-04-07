@@ -3,6 +3,10 @@
 <head>
   <title>Legal Heir Application</title>
 
+  <!-- 🔥 FIREBASE ADD -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
   <style>
     body {
       font-family: Arial;
@@ -118,6 +122,22 @@
 
 <script>
 
+// 🔥 FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
+  authDomain: "deor-gp.firebaseapp.com",
+  databaseURL: "https://deor-gp-default-rtdb.firebaseio.com/",
+  projectId: "deor-gp",
+  storageBucket: "deor-gp.firebasestorage.app",
+  messagingSenderId: "119940582286",
+  appId: "1:119940582286:web:f39346b6cc185809a232df"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
 // HOME
 function goHome(){
   window.location.href = "index.html";
@@ -153,11 +173,18 @@ function val(id){
   return document.getElementById(id)?.value || "-";
 }
 
-// GENERATE
+// 🔥 GENERATE + SAVE
 function generate(){
 
-  let c = document.getElementById("count").value;
+  let c = parseInt(document.getElementById("count").value) || 0;
+
+  if(c <= 0){
+    alert("Please enter number of heirs");
+    return;
+  }
+
   let rows = "";
+  let heirsData = [];
 
   for(let i=1;i<=c;i++){
     rows += `
@@ -170,111 +197,51 @@ function generate(){
         <td>${val("epic"+i)}</td>
       </tr>
     `;
+
+    heirsData.push({
+      name: val("name"+i),
+      age: val("age"+i),
+      relation: val("rel"+i),
+      address: val("addr"+i),
+      epic: val("epic"+i)
+    });
   }
 
-  document.getElementById("output").innerHTML = `
-  
-  <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
+  // 🔥 ACK ID
+  let now = new Date();
+  let year = now.getFullYear();
+  let serial = now.getTime().toString().slice(-6);
+  let ackID = `${year}-DGP-LHA-${serial}`;
 
-  <p>
-  To,<br>
-  The Prodhan,<br>
-  Deor Gram Panchayat<br>
-  Vill-Jarlai, P.O-Deor, P.S-Kumarganj,<br>
-  Dist-Dakshin Dinajpur, Pin-733140
-  </p>
+  // 🔥 SAVE TO FIREBASE
+  db.ref("applications/" + ackID).set({
+    ackID,
+    applicantName: val("app_name"),
+    fatherName: val("father_name"),
+    applicantAddress: val("app_address"),
+    deceasedName: val("dead_name"),
+    deceasedRelation: val("relation_name"),
+    deceasedAddress: val("dead_address"),
+    heirs: heirsData,
+    status: "Pending",
+    createdAt: now.toISOString()
+  })
+  .then(()=>{
 
-  <p><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
+    document.getElementById("output").innerHTML = `
+    <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
+    <p style="color:green;"><b>Acknowledgement ID:</b> ${ackID}</p>
+    `;
 
-  <p>
-  <b>Name of the Applicant:</b> ${val("app_name")}<br>
-  <b>Father's Name:</b> ${val("father_name")}<br>
-  <b>Address:</b> ${val("app_address")}
-  </p>
+    document.getElementById("printBtn").style.display = "block";
 
-  <h4>Details of the Deceased</h4>
-  <p>
-  <b>Name:</b> ${val("dead_name")}<br>
-  <b>Father/Husband Name:</b> ${val("relation_name")}<br>
-  <b>Last Address:</b> ${val("dead_address")}
-  </p>
+    alert("✅ Application Submitted Successfully!");
 
-  <h4>List of Legal Heirs</h4>
+  })
+  .catch(err=>{
+    alert("❌ Error: " + err.message);
+  });
 
-  <table border="1" width="100%" cellspacing="0" cellpadding="5">
-    <tr>
-      <th>Sl No</th>
-      <th>Name</th>
-      <th>Age</th>
-      <th>Relation</th>
-      <th>Address</th>
-      <th>EPIC</th>
-    </tr>
-    ${rows}
-  </table>
-
-  <br>
-
-  <p><b>Purpose of Certificate:</b> Official Purpose</p>
-
-  <h4>List of Documents Attached</h4>
-
-  <p>
-  ☐ Death Certificate (If avilable)<br>
-  ☐ Identity Proof (Aadhaar/PAN/Voter ID)<br>
-  ☐ Address Proof<br>
-  
-  </p>
-
-  <br>
-
-  <h4>Declaration</h4>
-  <p>
-  I hereby declare that the information above is true to the best of my knowledge and belief.
-  </p>
-
-  <br>
-
-  <div style="display:flex; justify-content:space-between;">
-    <div>Date: ____________</div>
-    <div>Place: ____________</div>
-  </div>
-
-  <br><br>
-
-  <p style="text-align:right;">Signature of Applicant</p>
-
-  <br><br>
-
-  <!-- Witness -->
-  <div style="display:flex; justify-content:space-between;">
-    
-    <div>
-      <b>Witness</b><br><br>
-      1. ___________________<br><br>
-      2. ___________________<br><br>
-      3. ___________________
-    </div>
-
-    <div>
-      <br><br>
-      4. ___________________<br><br>
-      5. ___________________<br><br>
-      6. ___________________
-    </div>
-
-  </div>
-
-  <br><br><br>
-
-  <div style="display:flex; justify-content:space-between;">
-    <div>Member Signature</div>
-    <div>Prodhan Signature</div>
-  </div>
-
-  `;
-
-  document.getElementById("printBtn").style.display = "block";
 }
 
 // PRINT
