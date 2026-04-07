@@ -38,7 +38,7 @@
       padding: 20px;
     }
 
-    input, select {
+    input {
       width: 100%;
       padding: 8px;
       margin: 5px 0 10px;
@@ -88,31 +88,13 @@
 <input id="app_address" placeholder="Address">
 <input id="father_name" placeholder="Father Name">
 
-<select id="gender">
-  <option>Male</option>
-  <option>Female</option>
-</select>
-
 <h3>Deceased</h3>
 <input id="dead_name" placeholder="Deceased Name">
-
-<select id="dead_gender">
-  <option>Male</option>
-  <option>Female</option>
-</select>
-
 <input id="relation_name" placeholder="Father/Husband/Mother Name">
 <input id="dead_address" placeholder="Address">
 
-<h3>Heir Count</h3>
-<select id="count" onchange="createHeirs()">
-  <option value="">Select</option>
-  <option value="1">1</option>
-  <option value="2">2</option>
-  <option value="3">3</option>
-  <option value="4">4</option>
-  <option value="5">5</option>
-</select>
+<h3>Number of Legal Heirs</h3>
+<input type="number" id="count" min="1" placeholder="Enter number" oninput="createHeirs()">
 
 <div id="heirs"></div>
 
@@ -159,13 +141,15 @@ async function generateID(){
 // RESET
 window.resetForm = () => location.reload();
 
-// HEIRS INPUT
+// 🔥 UNLIMITED HEIRS
 window.createHeirs = function(){
+
   let count = parseInt(document.getElementById("count").value);
   let container = document.getElementById("heirs");
+
   container.innerHTML = "";
 
-  if(!count) return;
+  if(!count || count < 1) return;
 
   for(let i=1;i<=count;i++){
     container.innerHTML += `
@@ -175,7 +159,7 @@ window.createHeirs = function(){
         <input id="rel${i}" placeholder="Relation">
         <input id="addr${i}" placeholder="Address">
         <input id="age${i}" placeholder="Age">
-        <input id="epic${i}" placeholder="EPIC">
+        <input id="epic${i}" placeholder="EPIC (Optional)">
       </div>
     `;
   }
@@ -190,11 +174,11 @@ window.generate = async function(){
 
   function val(id){ return document.getElementById(id)?.value || "-" }
 
-  // 🔥 HEIRS ARRAY
   let heirs = [];
   let heirsHTML = "";
 
   for(let i=1;i<=count;i++){
+
     let h = {
       name: val("name"+i),
       rel: val("rel"+i),
@@ -213,34 +197,29 @@ window.generate = async function(){
     `;
   }
 
-  // OUTPUT
+  // OUTPUT PREVIEW
   document.getElementById("output").innerHTML = `
     <h2 style="text-align:center;">DEOR GRAM PANCHAYAT</h2>
     <h3 style="text-align:center;">LEGAL HEIR APPLICATION</h3>
 
     <p><b>Acknowledgement No:</b> ${ackID}</p>
-    <p><b>Date:</b> ${now.toLocaleDateString()} | <b>Time:</b> ${now.toLocaleTimeString()}</p>
+    <p><b>Date:</b> ${now.toLocaleDateString()}</p>
 
     <hr>
 
-    <p><b>Applicant Name:</b> ${val("app_name")}</p>
+    <p><b>Applicant:</b> ${val("app_name")}</p>
     <p><b>Address:</b> ${val("app_address")}</p>
-    <p><b>Father Name:</b> ${val("father_name")}</p>
+    <p><b>Father:</b> ${val("father_name")}</p>
 
-    <br>
-
-    <p><b>Deceased Name:</b> ${val("dead_name")}</p>
-    <p><b>Relation Name:</b> ${val("relation_name")}</p>
+    <p><b>Deceased:</b> ${val("dead_name")}</p>
+    <p><b>Relation:</b> ${val("relation_name")}</p>
     <p><b>Address:</b> ${val("dead_address")}</p>
 
-    <br>
-
-    <h3>Legal Heirs Details:</h3>
+    <h3>Heirs</h3>
     ${heirsHTML}
-
   `;
 
-  // 🔥 FULL SAVE
+  // 🔥 SAVE FULL DATA
   await addDoc(collection(db, "applications"), {
     ackID,
     applicant: val("app_name"),
