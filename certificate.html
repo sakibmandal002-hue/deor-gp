@@ -24,17 +24,29 @@
       width: 100%;
       padding: 8px;
       margin: 5px 0 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    input.error, select.error {
+      border: 2px solid red;
+    }
+
+    label.required::after {
+      content: " *";
+      color: red;
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     button {
       padding: 6px 10px;
       margin: 3px;
       cursor: pointer;
-    }
-
-    .btn-row {
-      display: flex;
-      justify-content: space-between;
     }
 
     #output {
@@ -56,22 +68,36 @@
 
 <div class="box">
   <h3>Applicant Details</h3>
-  <input id="app_name" placeholder="Applicant Name">
-  <input id="father_name" placeholder="Father Name">
+
+  <label class="required">Applicant Name</label>
+  <input id="app_name">
+
+  <label class="required">Father Name</label>
+  <input id="father_name">
+
+  <label class="required">Gender</label>
   <select id="gender">
-    <option value="">Gender</option>
+    <option value="">Select</option>
     <option>Male</option>
     <option>Female</option>
     <option>Other</option>
   </select>
-  <input id="app_address" placeholder="Address">
+
+  <label class="required">Address</label>
+  <input id="app_address">
 </div>
 
 <div class="box">
   <h3>Deceased Details</h3>
-  <input id="dead_name" placeholder="Deceased Name">
-  <input id="dead_parent" placeholder="Father/Husband/Mother">
-  <input id="dead_address" placeholder="Address">
+
+  <label class="required">Deceased Name</label>
+  <input id="dead_name">
+
+  <label class="required">Father/Husband/Mother</label>
+  <input id="dead_parent">
+
+  <label class="required">Address</label>
+  <input id="dead_address">
 </div>
 
 <div class="box">
@@ -92,22 +118,47 @@ from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyD7...",
   authDomain: "deor-gp.firebaseapp.com",
-  projectId: "deor-gp",
-  storageBucket: "deor-gp.appspot.com",
-  messagingSenderId: "119940582286",
-  appId: "1:119940582286:web:f39346b6cc185809a232df"
+  projectId: "deor-gp"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let heirCount = 0;
+const MAX_HEIRS = 20;
 
 window.goHome = () => window.location.href = "index.html";
 window.resetForm = () => location.reload();
 
-// ✅ ADD HEIR WITH EPIC
+// validation
+function checkField(id){
+  let el = document.getElementById(id);
+  if(!el) return true;
+
+  if(el.value.trim() === ""){
+    el.classList.add("error");
+    return false;
+  } else {
+    el.classList.remove("error");
+    return true;
+  }
+}
+
+function attachLiveValidation(id){
+  let el = document.getElementById(id);
+  if(el){
+    el.addEventListener("input", () => checkField(id));
+  }
+}
+
+// add heir
 window.addHeir = function(){
+
+  if(heirCount >= MAX_HEIRS){
+    alert("❌ Maximum 20 heirs allowed");
+    return;
+  }
+
   heirCount++;
 
   let div = document.createElement("div");
@@ -123,33 +174,78 @@ window.addHeir = function(){
       </div>
     </div>
 
-    <input id="name${heirCount}" placeholder="Name">
-    <input id="rel${heirCount}" placeholder="Relation">
-    <input id="addr${heirCount}" placeholder="Address">
-    <input id="age${heirCount}" placeholder="Age">
-    <input id="epic${heirCount}" placeholder="EPIC Number">
+    <label class="required">Name</label>
+    <input id="name${heirCount}">
+
+    <label class="required">Relation</label>
+    <input id="rel${heirCount}">
+
+    <label class="required">Address</label>
+    <input id="addr${heirCount}">
+
+    <label class="required">Age</label>
+    <input id="age${heirCount}">
+
+    <label>EPIC (Optional)</label>
+    <input id="epic${heirCount}">
   `;
 
   document.getElementById("heirs").appendChild(div);
-}
 
-// REMOVE
+  attachLiveValidation("name"+heirCount);
+  attachLiveValidation("rel"+heirCount);
+  attachLiveValidation("addr"+heirCount);
+  attachLiveValidation("age"+heirCount);
+};
+
 window.removeHeir = function(id){
   let el = document.getElementById("heir"+id);
-  if(el) el.remove();
-}
+  if(el){
+    el.remove();
+    heirCount--;
+  }
+};
 
-// VALUE SAFE
 function val(id){
   let el = document.getElementById(id);
   return el ? el.value.trim() || "-" : "-";
 }
 
-// SUBMIT
+function validateForm(){
+
+  let valid = true;
+
+  let fields = [
+    "app_name","father_name","gender","app_address",
+    "dead_name","dead_parent","dead_address"
+  ];
+
+  fields.forEach(id=>{
+    if(!checkField(id)) valid = false;
+  });
+
+  for(let i=1;i<=heirCount;i++){
+    if(document.getElementById("name"+i)){
+      if(!checkField("name"+i)) valid = false;
+      if(!checkField("rel"+i)) valid = false;
+      if(!checkField("addr"+i)) valid = false;
+      if(!checkField("age"+i)) valid = false;
+    }
+  }
+
+  return valid;
+}
+
+// ✅ SUBMIT WITH YOUR OUTPUT
 window.generate = async function(){
 
   if(heirCount === 0){
     alert("Add at least 1 heir");
+    return;
+  }
+
+  if(!validateForm()){
+    alert("❌ Please fill all required fields");
     return;
   }
 
@@ -285,7 +381,11 @@ window.downloadPDF = function(){
   html2pdf().from(document.getElementById("output")).save("Legal_Heir_Application.pdf");
 }
 
-// first heir auto add
+// init
+["app_name","father_name","gender","app_address",
+ "dead_name","dead_parent","dead_address"]
+.forEach(id => attachLiveValidation(id));
+
 addHeir();
 
 </script>
