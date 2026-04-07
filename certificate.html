@@ -121,7 +121,7 @@
 
 </div>
 
-<!-- 🔥 Firebase Compat (IMPORTANT) -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
@@ -136,7 +136,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 🔢 SERIAL ID
+// SERIAL ID
 async function generateID(){
   const snapshot = await db.collection("applications").get();
   let max = 0;
@@ -153,23 +153,17 @@ async function generateID(){
   return "2026-DGP-LHA-" + String(next).padStart(3,'0');
 }
 
-// 🔄 RESET
+// RESET
 function resetForm(){
   location.reload();
 }
 
-// 🏠 HOME (FIXED)
+// ✅ FIXED HOME BUTTON
 function goHome(){
-  document.getElementById("output").innerHTML = "";
-  document.getElementById("printBtn").style.display = "none";
-
-  document.querySelectorAll("input").forEach(input => input.value = "");
-  document.getElementById("heirs").innerHTML = "";
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.location.href = "index.html";
 }
 
-// 👨‍👩‍👧 HEIRS
+// HEIRS
 function createHeirs(){
   let count = parseInt(document.getElementById("count").value);
   let container = document.getElementById("heirs");
@@ -191,7 +185,7 @@ function createHeirs(){
   }
 }
 
-// 📄 GENERATE
+// GENERATE
 async function generate(){
 
   let ackID = await generateID();
@@ -256,7 +250,7 @@ async function generate(){
   document.getElementById("printBtn").style.display = "block";
 }
 
-// 🖨 PRINT
+// PRINT
 function printPage(){
   window.print();
 }
