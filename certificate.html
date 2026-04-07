@@ -1,150 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Legal Heir Application</title>
+<script type="module">
 
-  <!-- FIREBASE -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  <style>
-    body {
-      font-family: Arial;
-      margin: 0;
-      background: #f4f4f4;
-    }
-
-    @page {
-      size: A4;
-      margin: 15mm;
-    }
-
-    .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 180px;
-      height: 100%;
-      background: #222;
-      padding: 20px;
-    }
-
-    .sidebar button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-      color: white;
-    }
-
-    .home { background: orange; }
-    .submit { background: green; }
-    .reset { background: red; }
-    .pdf { background: blue; display: none; }
-
-    .main {
-      margin-left: 200px;
-      padding: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0 10px;
-    }
-
-    .box {
-      background: white;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-    }
-
-    #output {
-      width: 210mm;
-      min-height: 297mm;
-      margin: auto;
-      background: white;
-      padding: 15mm;
-      box-sizing: border-box;
-    }
-
-    @media print {
-      .sidebar, .no-print {
-        display: none;
-      }
-
-      .main {
-        margin: 0;
-        padding: 0;
-      }
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="sidebar no-print">
-  <button type="button" class="home" onclick="goHome()">Home</button>
-  <button type="button" class="reset" onclick="resetForm()">Reset</button>
-  <button type="button" class="submit" onclick="generate()">Submit</button>
-  <button type="button" class="pdf" id="printBtn" onclick="printPage()">Print</button>
-</div>
-
-<div class="main">
-
-<h2 class="no-print">Legal Heir Application</h2>
-
-<div class="box no-print">
-
-<h3>Applicant</h3>
-<input id="app_name" placeholder="Applicant Name">
-<input id="father_name" placeholder="Father Name">
-<input id="app_address" placeholder="Address">
-
-<h3>Deceased</h3>
-<input id="dead_name" placeholder="Deceased Name">
-<input id="relation_name" placeholder="Relation">
-<input id="dead_address" placeholder="Last Address">
-
-<h3>No. of Legal Heirs</h3>
-<input type="number" id="count" min="1" oninput="createHeirs()">
-
-<div id="heirs"></div>
-
-</div>
-
-<div id="output"></div>
-
-</div>
-
-<script>
-
-// FIREBASE CONFIG
+// CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
-  databaseURL: "https://deor-gp-default-rtdb.firebaseio.com/",
   projectId: "deor-gp",
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 // HOME
-function goHome(){
+window.goHome = function(){
   window.location.href = "index.html";
 }
 
 // RESET
-function resetForm(){
+window.resetForm = function(){
   location.reload();
 }
 
 // CREATE HEIRS
-function createHeirs(){
+window.createHeirs = function(){
   let c = document.getElementById("count").value;
   let h = document.getElementById("heirs");
   h.innerHTML = "";
@@ -169,7 +49,7 @@ function val(id){
 }
 
 // GENERATE + SAVE
-function generate(){
+window.generate = async function(){
 
   let c = parseInt(document.getElementById("count").value) || 0;
 
@@ -195,22 +75,32 @@ function generate(){
 
     heirsData.push({
       name: val("name"+i),
-      age: val("age"+i)
+      age: val("age"+i),
+      relation: val("rel"+i),
+      address: val("addr"+i),
+      epic: val("epic"+i)
     });
   }
 
   let now = new Date();
-  let ackID = "DGP-" + now.getTime();
+  let ackID = "DGP-" + Date.now();
 
-  db.ref("applications/" + ackID).set({
-    ackID,
-    applicant: val("app_name"),
-    heirs: heirsData,
-    createdAt: now.toISOString()
-  })
-  .then(()=>{
+  try{
 
-    document.getElementById("output").innerHTML = `
+    await addDoc(collection(db, "applications"), {
+      ackID: ackID,
+      applicant: val("app_name"),
+      fatherName: val("father_name"),
+      address: val("app_address"),
+      deceased: val("dead_name"),
+      relation: val("relation_name"),
+      deadAddress: val("dead_address"),
+      heirs: heirsData,
+      status: "pending",
+      createdAt: now
+    });
+
+     document.getElementById("output").innerHTML = `
 
 <h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
 
@@ -321,23 +211,19 @@ Signature of Member
 
 `;
 
-    document.getElementById("printBtn").style.display = "block";
+       document.getElementById("printBtn").style.display = "block";
 
     alert("✅ Submitted Successfully");
 
-  })
-  .catch(err=>{
+  }catch(err){
     alert("Error: " + err.message);
-  });
+  }
 
 }
 
 // PRINT
-function printPage(){
+window.printPage = function(){
   window.print();
 }
 
 </script>
-
-</body>
-</html>
