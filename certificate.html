@@ -1,13 +1,21 @@
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// CONFIG
+// ✅ FULL CONFIG (FIXED)
 const firebaseConfig = {
   apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
   projectId: "deor-gp",
+  storageBucket: "deor-gp.firebasestorage.app",
+  messagingSenderId: "119940582286",
+  appId: "1:119940582286:web:f39346b6cc185809a232df"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -25,7 +33,18 @@ window.resetForm = function(){
 
 // CREATE HEIRS
 window.createHeirs = function(){
-  let c = document.getElementById("count").value;
+  let c = parseInt(document.getElementById("count").value) || 0;
+
+  if(c <= 0){
+    alert("Enter valid number");
+    return;
+  }
+
+  if(c > 20){
+    alert("Max 20 heirs allowed");
+    return;
+  }
+
   let h = document.getElementById("heirs");
   h.innerHTML = "";
 
@@ -43,9 +62,10 @@ window.createHeirs = function(){
   }
 }
 
-// VALUE
+// VALUE SAFE GET
 function val(id){
-  return document.getElementById(id)?.value || "-";
+  let el = document.getElementById(id);
+  return el && el.value.trim() !== "" ? el.value.trim() : "-";
 }
 
 // GENERATE + SAVE
@@ -58,32 +78,43 @@ window.generate = async function(){
     return;
   }
 
+  // ✅ BASIC VALIDATION
+  if(val("app_name") === "-" || val("father_name") === "-"){
+    alert("Please fill required fields");
+    return;
+  }
+
   let rows = "";
   let heirsData = [];
 
   for(let i=1;i<=c;i++){
+
+    let name = val("name"+i);
+    let age = val("age"+i);
+    let rel = val("rel"+i);
+    let addr = val("addr"+i);
+    let epic = val("epic"+i);
+
     rows += `
       <tr>
         <td>${i}</td>
-        <td>${val("name"+i)}</td>
-        <td>${val("age"+i)}</td>
-        <td>${val("rel"+i)}</td>
-        <td>${val("addr"+i)}</td>
-        <td>${val("epic"+i)}</td>
+        <td>${name}</td>
+        <td>${age}</td>
+        <td>${rel}</td>
+        <td>${addr}</td>
+        <td>${epic}</td>
       </tr>
     `;
 
     heirsData.push({
-      name: val("name"+i),
-      age: val("age"+i),
-      relation: val("rel"+i),
-      address: val("addr"+i),
-      epic: val("epic"+i)
+      name, age, relation: rel, address: addr, epic
     });
   }
 
+  // ✅ SMART ACK ID (NO DUPLICATE FORMAT)
   let now = new Date();
-  let ackID = "DGP-" + Date.now();
+  let year = now.getFullYear();
+  let ackID = `${year}-DGP-LHA-${Date.now().toString().slice(-5)}`;
 
   try{
 
@@ -97,10 +128,11 @@ window.generate = async function(){
       deadAddress: val("dead_address"),
       heirs: heirsData,
       status: "pending",
-      createdAt: now
+      createdAt: serverTimestamp()
     });
 
-     document.getElementById("output").innerHTML = `
+    // ✅ OUTPUT (STRUCTURE SAME — NO CHANGE)
+    document.getElementById("output").innerHTML = `
 
 <h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
 
@@ -143,10 +175,8 @@ ${rows}
 
 <br>
 
-<p>I hereby declare that the above information is true to the best of my knowledge. Kindly issue the Legal Heir Certificate.
-</p>
+<p>I hereby declare that the above information is true to the best of my knowledge. Kindly issue the Legal Heir Certificate.</p>
 
-<br><br> I request you to kindly issue the Legal Heir Certificate.</p>
 
 <br><br>
 
@@ -211,7 +241,7 @@ Signature of Member
 
 `;
 
-       document.getElementById("printBtn").style.display = "block";
+    document.getElementById("printBtn").style.display = "block";
 
     alert("✅ Submitted Successfully");
 
