@@ -1,68 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Admin Panel</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      padding: 20px;
-      background: #f4f4f4;
-    }
-
-    h2 {
-      text-align: center;
-    }
-
-    input {
-      padding: 8px;
-      width: 250px;
-    }
-
-    button {
-      padding: 6px 10px;
-      cursor: pointer;
-      margin: 2px;
-    }
-
-    table {
-      background: white;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 10px;
-      text-align: center;
-    }
-  </style>
-</head>
-
-<body>
-
-<h2>Admin Dashboard</h2>
-
-<input id="search" placeholder="Search by ID">
-<button onclick="searchData()">Search</button>
-<button onclick="logout()">Logout</button>
-
-<br><br>
-
-<table border="1" width="100%" id="table">
-<tr>
-  <th>ID</th>
-  <th>Applicant</th>
-  <th>Date</th>
-  <th>Action</th>
-</tr>
-</table>
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
@@ -76,7 +17,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// AUTH CHECK
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     alert("Login Required");
@@ -84,10 +24,8 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// STORE
 let allData = [];
 
-// LOAD DATA
 async function loadData(){
 
   const snapshot = await getDocs(collection(db, "applications"));
@@ -99,6 +37,7 @@ async function loadData(){
       <th>ID</th>
       <th>Applicant</th>
       <th>Date</th>
+      <th>Status</th>
       <th>Action</th>
     </tr>
   `;
@@ -111,8 +50,16 @@ async function loadData(){
 
     allData.push({...d, docId:id});
 
+    let status = d.status || "pending";
+
+    let rowColor = "";
+    if(status === "rejected") rowColor = "style='background:#ffcccc'";
+    if(status === "approved") rowColor = "style='background:#ccffcc'";
+
+    let disabled = status === "approved" ? "disabled" : "";
+
     table.innerHTML += `
-      <tr>
+      <tr ${rowColor}>
         <td>${d.ackID || "-"}</td>
         <td>${d.applicant || "-"}</td>
         <td>${
@@ -120,10 +67,12 @@ async function loadData(){
             ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
             : "-"
         }</td>
+        <td>${status}</td>
         <td>
           <button onclick='viewCert(${JSON.stringify(d)})'>View</button>
-          <button onclick="rejectApp('${id}')">Reject</button>
-          <button onclick="deleteApp('${id}')">Delete</button>
+          <button ${disabled} onclick="approveApp('${id}')">Approve</button>
+          <button ${disabled} onclick="rejectApp('${id}')">Reject</button>
+          <button ${disabled} onclick="deleteApp('${id}')">Delete</button>
         </td>
       </tr>
     `;
@@ -131,7 +80,41 @@ async function loadData(){
 
 }
 
-// SEARCH
+// APPROVE
+window.approveApp = async function(id){
+  if(confirm("Approve this application?")){
+    await updateDoc(doc(db, "applications", id), {
+      status: "approved"
+    });
+    loadData();
+  }
+}
+
+// REJECT
+window.rejectApp = async function(id){
+  if(confirm("Reject this application?")){
+    await updateDoc(doc(db, "applications", id), {
+      status: "rejected"
+    });
+    loadData();
+  }
+}
+
+// DELETE
+window.deleteApp = async function(id){
+  if(confirm("Delete permanently?")){
+    await deleteDoc(doc(db, "applications", id));
+    loadData();
+  }
+}
+
+// VIEW
+window.viewCert = function(data){
+  localStorage.setItem("certData", JSON.stringify(data));
+  window.open("view.html", "_blank");
+}
+
+// SEARCH same
 window.searchData = function(){
 
   let val = document.getElementById("search").value.toLowerCase();
@@ -142,6 +125,7 @@ window.searchData = function(){
       <th>ID</th>
       <th>Applicant</th>
       <th>Date</th>
+      <th>Status</th>
       <th>Action</th>
     </tr>
   `;
@@ -149,8 +133,17 @@ window.searchData = function(){
   allData
   .filter(d => d.ackID?.toLowerCase().includes(val))
   .forEach(d=>{
+
+    let status = d.status || "pending";
+
+    let rowColor = "";
+    if(status === "rejected") rowColor = "style='background:#ffcccc'";
+    if(status === "approved") rowColor = "style='background:#ccffcc'";
+
+    let disabled = status === "approved" ? "disabled" : "";
+
     table.innerHTML += `
-      <tr>
+      <tr ${rowColor}>
         <td>${d.ackID}</td>
         <td>${d.applicant}</td>
         <td>${
@@ -158,10 +151,12 @@ window.searchData = function(){
             ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
             : "-"
         }</td>
+        <td>${status}</td>
         <td>
           <button onclick='viewCert(${JSON.stringify(d)})'>View</button>
-          <button onclick="rejectApp('${d.docId}')">Reject</button>
-          <button onclick="deleteApp('${d.docId}')">Delete</button>
+          <button ${disabled} onclick="approveApp('${d.docId}')">Approve</button>
+          <button ${disabled} onclick="rejectApp('${d.docId}')">Reject</button>
+          <button ${disabled} onclick="deleteApp('${d.docId}')">Delete</button>
         </td>
       </tr>
     `;
@@ -169,49 +164,12 @@ window.searchData = function(){
 
 }
 
-// VIEW
-window.viewCert = function(data){
-  localStorage.setItem("certData", JSON.stringify(data));
-  window.open("view.html", "_blank");
-}
-
-// ❌ REJECT
-window.rejectApp = async function(id){
-
-  if(confirm("Reject this application?")){
-    await updateDoc(doc(db, "applications", id), {
-      status: "rejected"
-    });
-
-    alert("Application Rejected");
-    loadData();
-  }
-
-}
-
-// 🗑 DELETE
-window.deleteApp = async function(id){
-
-  if(confirm("Delete permanently?")){
-    await deleteDoc(doc(db, "applications", id));
-
-    alert("Deleted Successfully");
-    loadData();
-  }
-
-}
-
-// LOGOUT
 window.logout = function(){
   signOut(auth).then(()=>{
     window.location.href = "login.html";
   });
 }
 
-// INIT
 loadData();
 
 </script>
-
-</body>
-</html>
