@@ -1,29 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
-  authDomain: "deor-gp.firebaseapp.com",
-  projectId: "deor-gp",
-  appId: "1:119940582286:web:f39346b6cc185809a232df"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    alert("Login Required");
-    window.location.href = "login.html";
-  }
-});
-
-</script>
   <title>Admin Panel</title>
 </head>
 
@@ -36,71 +13,128 @@ onAuthStateChanged(auth, (user) => {
 
 <br><br>
 
+<button onclick="logout()">Logout</button>
+
+<br><br>
+
 <table border="1" width="100%" id="table">
 <tr>
-<th>ID</th>
-<th>Applicant</th>
-<th>Date</th>
+  <th>ID</th>
+  <th>Applicant</th>
+  <th>Date</th>
 </tr>
-
 </table>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+// ✅ SAME CONFIG EVERYWHERE
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
-  projectId: "deor-gp"
+  projectId: "deor-gp",
+  storageBucket: "deor-gp.appspot.com",
+  messagingSenderId: "119940582286",
+  appId: "1:119940582286:web:f39346b6cc185809a232df"
 };
 
+// 🔥 INIT ONLY ONCE
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
+// 🔒 AUTH CHECK
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    alert("Login Required");
+    window.location.href = "login.html";
+  }
+});
+
+// 📊 DATA STORE
 let allData = [];
 
+// 🔥 LOAD DATA
 async function loadData(){
 
-  const snapshot = await getDocs(collection(db,"applications"));
+  const snapshot = await getDocs(collection(db, "applications"));
+
+  let table = document.getElementById("table");
+
+  // ✅ RESET TABLE
+  table.innerHTML = `
+    <tr>
+      <th>ID</th>
+      <th>Applicant</th>
+      <th>Date</th>
+    </tr>
+  `;
+
+  allData = []; // reset
 
   snapshot.forEach(doc=>{
     let d = doc.data();
     allData.push(d);
 
-    document.getElementById("table").innerHTML += `
+    table.innerHTML += `
       <tr>
-        <td>${d.ackID}</td>
-        <td>${d.applicant}</td>
-        <td>${new Date(d.createdAt.seconds*1000).toLocaleDateString()}</td>
+        <td>${d.ackID || "-"}</td>
+        <td>${d.applicant || "-"}</td>
+        <td>${
+          d.createdAt?.seconds
+            ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
+            : "-"
+        }</td>
       </tr>
     `;
   });
 
 }
 
+// 🔍 SEARCH
 window.searchData = function(){
 
-  let val = document.getElementById("search").value;
+  let val = document.getElementById("search").value.toLowerCase();
 
   let table = document.getElementById("table");
-  table.innerHTML = `<tr><th>ID</th><th>Applicant</th><th>Date</th></tr>`;
+
+  table.innerHTML = `
+    <tr>
+      <th>ID</th>
+      <th>Applicant</th>
+      <th>Date</th>
+    </tr>
+  `;
 
   allData
-  .filter(d => d.ackID.includes(val))
+  .filter(d => d.ackID?.toLowerCase().includes(val))
   .forEach(d=>{
     table.innerHTML += `
       <tr>
         <td>${d.ackID}</td>
         <td>${d.applicant}</td>
-        <td>${new Date(d.createdAt.seconds*1000).toLocaleDateString()}</td>
+        <td>${
+          d.createdAt?.seconds
+            ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
+            : "-"
+        }</td>
       </tr>
     `;
   });
 
 }
 
+// 🚪 LOGOUT
+window.logout = function(){
+  signOut(auth).then(()=>{
+    window.location.href = "login.html";
+  });
+}
+
+// 🚀 INIT
 loadData();
 
 </script>
