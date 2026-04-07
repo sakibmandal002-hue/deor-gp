@@ -30,6 +30,12 @@ button {
   cursor:pointer;
 }
 
+.btn-row {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+}
+
 /* Certificate */
 #certificate {
   width:210mm;
@@ -41,7 +47,23 @@ button {
 
   background:url('letterhead.jpg') no-repeat top center;
   background-size:100% auto;
-  overflow:visible;
+}
+
+/* PRINT */
+@media print {
+  body * { visibility:hidden; }
+  #certificate, #certificate * { visibility:visible; }
+
+  #certificate {
+    position:absolute;
+    top:0;
+    left:0;
+    width:210mm;
+    height:297mm;
+    margin:0;
+  }
+
+  button { display:none; }
 }
 
 /* Tree */
@@ -68,7 +90,7 @@ button {
   margin:auto;
 }
 
-.h-line {
+.row-line {
   height:2px;
   background:black;
   margin:10px auto;
@@ -84,18 +106,19 @@ button {
 .siblings-wrapper {
   display:flex;
   justify-content:center;
-  align-items:flex-start;
   flex-wrap:wrap;
+  max-width:750px;
+  margin:auto;
 }
 
 .sibling-item {
+  width:170px;
+  margin:10px;
   text-align:center;
-  margin:0 8px;
 }
 
 .number {
   font-weight:bold;
-  margin-bottom:4px;
 }
 
 .app-left {
@@ -103,7 +126,6 @@ button {
 }
 
 .tree-center {
-  text-align:center;
   margin-bottom:40px;
 }
 
@@ -118,22 +140,28 @@ button {
 
 <h2>Family Tree Form</h2>
 
-<!-- FORM -->
-
+<!-- Applicant -->
 <div class="box">
 <h3>Applicant Details</h3>
 <input id="app_name" placeholder="Applicant Name">
-<input id="app_relation" placeholder="Relation">
+<input id="app_relation" placeholder="Relation (Son/Wife/Daughter)">
 <input id="app_father" placeholder="Father Name">
 <input id="app_address" placeholder="Address">
 <input id="app_epic" placeholder="EPIC">
 <input id="app_age" placeholder="Age">
+
 <select id="app_gender">
 <option>Male</option>
 <option>Female</option>
 </select>
+
+<select id="app_marital">
+<option>Married</option>
+<option>Unmarried</option>
+</select>
 </div>
 
+<!-- Father -->
 <div class="box">
 <h3>Father Details</h3>
 <input id="f_name" placeholder="Father Name">
@@ -145,6 +173,7 @@ button {
 </select>
 </div>
 
+<!-- Mother -->
 <div class="box">
 <h3>Mother Details</h3>
 <input id="m_name" placeholder="Mother Name">
@@ -156,6 +185,7 @@ button {
 </select>
 </div>
 
+<!-- Siblings -->
 <div class="box">
 <h3>Siblings</h3>
 <input id="count" type="number" placeholder="No. of siblings">
@@ -163,12 +193,15 @@ button {
 <div id="siblingsForm"></div>
 </div>
 
-<button onclick="generate()">Generate Certificate</button>
+<!-- Buttons -->
+<div class="btn-row">
+  <button onclick="generate()">Generate Certificate</button>
+  <button class="print-btn" onclick="window.print()">Print</button>
+</div>
 
 <!-- Certificate -->
 <div id="certificate">
 <div id="output"></div>
-<button class="print-btn" onclick="window.print()">Print / Download</button>
 </div>
 
 <script>
@@ -206,22 +239,20 @@ function createSiblings(){
 
 function generate(){
 
+  let perRow = 4;
+  let rowHTML = "";
   let siblingsHTML = "";
-  let width = count * 170;
-
-  let fontSize = 14;
-  if(count >= 6) fontSize = 12;
-  if(count >= 10) fontSize = 10;
 
   for(let i=1;i<=count;i++){
     let name = document.getElementById("name"+i).value;
 
     if(name){
-      siblingsHTML += `
+
+      rowHTML += `
       <div class="sibling-item">
         <div class="v-line"></div>
         <div class="number">${i}</div>
-        <div class="sibling-box" style="font-size:${fontSize}px;">
+        <div class="sibling-box">
           <b>${name}</b><br>
           ${document.getElementById("gender"+i).value}<br>
           Age: ${document.getElementById("age"+i).value}<br>
@@ -231,7 +262,32 @@ function generate(){
           ${document.getElementById("status"+i).value}
         </div>
       </div>`;
+
+      if(i % perRow === 0){
+        siblingsHTML += `
+        <div class="row-line" style="width:${perRow*180}px;"></div>
+        <div class="siblings-wrapper">${rowHTML}</div>`;
+        rowHTML = "";
+      }
     }
+  }
+
+  if(rowHTML !== ""){
+    siblingsHTML += `
+    <div class="row-line" style="width:600px;"></div>
+    <div class="siblings-wrapper">${rowHTML}</div>`;
+  }
+
+  let relationType = "by relation";
+
+  if(app_relation.value.toLowerCase().includes("wife")){
+    relationType = "by marriage";
+  }
+  else if(app_relation.value.toLowerCase().includes("son")){
+    relationType = "by birth";
+  }
+  else if(app_relation.value.toLowerCase().includes("daughter")){
+    relationType = (app_marital.value === "Married") ? "by marriage" : "by birth";
   }
 
   let html = `
@@ -245,7 +301,8 @@ function generate(){
     ${app_relation.value} of ${app_father.value}<br>
     Address: ${app_address.value}<br>
     EPIC: ${app_epic.value}, Age: ${app_age.value}<br>
-    Gender: ${app_gender.value}
+    Gender: ${app_gender.value}<br>
+    Marital Status: ${app_marital.value}
     </p>
   </div>
 
@@ -276,13 +333,17 @@ function generate(){
 
     <div class="line"></div>
 
-    <div class="h-line" style="width:${width}px;"></div>
-
-    <div class="siblings-wrapper">
-      ${siblingsHTML}
-    </div>
+    ${siblingsHTML}
 
   </div>
+
+  <p class="app-left" style="margin-top:20px;">
+  It is hereby verified that from the above family composition, it is evident that 
+  <b>${app_name.value}</b> is a resident of this Gram Panchayat ${relationType}. 
+
+  In case of daughter, if married then she is considered resident by marriage, 
+  and if unmarried then by birth.
+  </p>
 
   <p style="text-align:right; margin-top:80px;">
   Signature of Pradhan
