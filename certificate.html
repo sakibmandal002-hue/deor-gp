@@ -11,7 +11,6 @@
       background: #f4f4f4;
     }
 
-    /* 🔥 A4 FIX */
     @page {
       size: A4;
       margin: 15mm;
@@ -35,7 +34,8 @@
       cursor: pointer;
       font-weight: bold;
     }
-  
+
+    .home { background: orange; color: white; }
     .submit { background: green; color: white; }
     .reset { background: red; color: white; }
     .pdf { background: blue; color: white; display: none; }
@@ -68,14 +68,7 @@
     }
 
     @media print {
-      body {
-        margin: 0;
-        padding: 0;
-        background: white;
-      }
-
-      .sidebar,
-      .no-print {
+      .sidebar, .no-print {
         display: none;
       }
 
@@ -87,7 +80,6 @@
       #output {
         margin: 0;
         padding: 15mm;
-        box-shadow: none;
       }
     }
   </style>
@@ -96,7 +88,7 @@
 <body>
 
 <div class="sidebar no-print">
-  <button onclick="goHome()" style="background: orange; color:white;">Home</button>
+  <button class="home" onclick="goHome()">Home</button>
   <button class="reset" onclick="resetForm()">Reset</button>
   <button class="submit" onclick="generate()">Submit</button>
   <button class="pdf" id="printBtn" onclick="printPage()">Print</button>
@@ -163,8 +155,20 @@ async function generateID(){
   return "2026-DGP-LHA-" + String(next).padStart(3,'0');
 }
 
-// RESET
+// RESET (Reload)
 window.resetForm = () => location.reload();
+
+// HOME (🔥 FIXED)
+function goHome(){
+  document.getElementById("output").innerHTML = "";
+  document.getElementById("printBtn").style.display = "none";
+
+  document.querySelectorAll("input").forEach(input => input.value = "");
+  document.getElementById("heirs").innerHTML = "";
+
+  window.scrollTo(0,0);
+}
+window.goHome = goHome;
 
 // HEIRS
 window.createHeirs = function(){
@@ -194,10 +198,7 @@ window.generate = async function(){
   let ackID = await generateID();
   let now = new Date();
 
-  let day = String(now.getDate()).padStart(2, '0');
-  let month = String(now.getMonth() + 1).padStart(2, '0');
-  let year = now.getFullYear();
-  let formattedDate = `${day}/${month}/${year}`;
+  let formattedDate = now.toLocaleDateString("en-GB");
 
   let count = parseInt(document.getElementById("count").value) || 0;
 
@@ -216,34 +217,15 @@ window.generate = async function(){
   }
 
   document.getElementById("output").innerHTML = `
-<div>
-
 <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
 
-<p>To,<br>
-The Prodhan,<br>
-Deor Gram Panchayat<br>
-Vill-Jarlai, P.O-Deor, P.S-Kumarganj,<br>
-Dist-Dakshin Dinajpur, Pin-733140
-</p>
-
-<p style="text-align:center; margin:20px 0;">
-  <b>Subject: Application for issuance of Legal Heir Certificate.</b>
-</p>
-<p><b>Name of Applicant:</b> ${val("app_name")}</p>
-<p><b>Father's Name:</b> ${val("father_name")}</p>
+<p><b>Name:</b> ${val("app_name")}</p>
 <p><b>Address:</b> ${val("app_address")}</p>
-
-<h4>Deceased Details</h4>
-
-<p><b>Name:</b> ${val("dead_name")}</p>
-<p><b>Relation:</b> ${val("relation_name")}</p>
-<p><b>Address:</b> ${val("dead_address")}</p>
 
 <h4>Legal Heirs</h4>
 
 <table border="1" width="100%">
-<tr><th>Sl</th><th>Name</th><th>Age</th><th>Relation</th><th>Address</th><th>EPIC</th></tr>
+<tr><th>Sl</th><th>Name</th><th>Age</th><th>Relation</th></tr>
 
 ${heirs.map((h,i)=>`
 <tr>
@@ -251,70 +233,18 @@ ${heirs.map((h,i)=>`
 <td>${h.name}</td>
 <td>${h.age}</td>
 <td>${h.rel}</td>
-<td>${h.addr}</td>
-<td>${h.epic || "N/A"}</td>
 </tr>
 `).join("")}
 
 </table>
 
 <br>
-
 <p><b>Date:</b> ${formattedDate}</p>
-<p><b>Place:</b> Deor Gram Panchayat</p>
-
-<br><br>
-<p style="text-align:right; margin:20px 0;">
-  <b>Signature of Applicant</b>
-</p>
-
-
-<br><br>
-
-<div style="margin-top:30px;">
-  <b>Witness:</b><br><br>
-
-  <div style="display:flex; justify-content:space-between;">
-
-    <!-- LEFT SIDE -->
-    <div>
-      1. ___________________________<br><br>
-      2. ___________________________<br><br>
-      3. ___________________________
-    </div>
-
-    <!-- RIGHT SIDE -->
-    <div>
-      4. ___________________________<br><br>
-      5. ___________________________
-    </div>
-
-  </div>
-</div>
-
-<br><br><br>
-
-<div style="display:flex; justify-content:space-between; margin-top:40px;">
-  <div>
-    ___________________________<br>
-    Signature of Member
-  </div>
-
-  <div style="text-align:right;">
-    ___________________________<br>
-    Signature of Pradhan
-  </div>
-</div>
 `;
 
   await addDoc(collection(db, "applications"), {
     ackID,
     applicant: val("app_name"),
-    address: val("app_address"),
-    father: val("father_name"),
-    deceased: val("dead_name"),
-    relation: val("relation_name"),
-    deadAddress: val("dead_address"),
     heirs,
     createdAt: new Date()
   });
