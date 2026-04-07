@@ -67,15 +67,6 @@
       box-sizing: border-box;
     }
 
-    table {
-      border-collapse: collapse;
-    }
-
-    th, td {
-      border: 1px solid black;
-      padding: 5px;
-    }
-
     @media print {
       .sidebar, .no-print {
         display: none;
@@ -127,16 +118,19 @@
 
 <script>
 
+// HOME
 function goHome(){
-  window.location.href = "./index.html";
+  window.location.href = "index.html";
 }
 
+// RESET
 function resetForm(){
   location.reload();
 }
 
+// CREATE HEIRS
 function createHeirs(){
-  let c = parseInt(document.getElementById("count").value) || 0;
+  let c = document.getElementById("count").value;
   let h = document.getElementById("heirs");
   h.innerHTML = "";
 
@@ -154,20 +148,15 @@ function createHeirs(){
   }
 }
 
+// VALUE
 function val(id){
-  let el = document.getElementById(id);
-  return el && el.value ? el.value : "-";
+  return document.getElementById(id)?.value || "-";
 }
 
+// GENERATE
 function generate(){
 
-  let c = parseInt(document.getElementById("count").value) || 0;
-
-  if(c <= 0){
-    alert("Please enter number of heirs");
-    return;
-  }
-
+  let c = document.getElementById("count").value;
   let rows = "";
 
   for(let i=1;i<=c;i++){
@@ -185,9 +174,6 @@ function generate(){
 
   document.getElementById("output").innerHTML = `
   
-  <!-- PAGE 1 -->
-  <div style="page-break-after: always;">
-
   <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
 
   <p>
@@ -198,24 +184,24 @@ function generate(){
   Dist-Dakshin Dinajpur, Pin-733140
   </p>
 
-  <p style="text-align:center;"><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
+  <p><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
 
   <p>
-  <b>Name:</b> ${val("app_name")}<br>
-  <b>Father:</b> ${val("father_name")}<br>
+  <b>Name of the Applicant:</b> ${val("app_name")}<br>
+  <b>Father's Name:</b> ${val("father_name")}<br>
   <b>Address:</b> ${val("app_address")}
   </p>
 
-  <h4>Deceased Details</h4>
+  <h4>Details of the Deceased</h4>
   <p>
   <b>Name:</b> ${val("dead_name")}<br>
-  <b>Relation:</b> ${val("relation_name")}<br>
-  <b>Address:</b> ${val("dead_address")}
+  <b>Father/Husband Name:</b> ${val("relation_name")}<br>
+  <b>Last Address:</b> ${val("dead_address")}
   </p>
 
-  <h4>Legal Heirs</h4>
+  <h4>List of Legal Heirs</h4>
 
-  <table width="100%">
+  <table border="1" width="100%" cellspacing="0" cellpadding="5">
     <tr>
       <th>Sl No</th>
       <th>Name</th>
@@ -229,6 +215,26 @@ function generate(){
 
   <br>
 
+  <p><b>Purpose of Certificate:</b> Official Purpose</p>
+
+  <h4>List of Documents Attached</h4>
+
+  <p>
+  ☐ Death Certificate (If avilable)<br>
+  ☐ Identity Proof (Aadhaar/PAN/Voter ID)<br>
+  ☐ Address Proof<br>
+  
+  </p>
+
+  <br>
+
+  <h4>Declaration</h4>
+  <p>
+  I hereby declare that the information above is true to the best of my knowledge and belief.
+  </p>
+
+  <br>
+
   <div style="display:flex; justify-content:space-between;">
     <div>Date: ____________</div>
     <div>Place: ____________</div>
@@ -238,58 +244,40 @@ function generate(){
 
   <p style="text-align:right;">Signature of Applicant</p>
 
-  </div>
-
-
-  <!-- PAGE 2 -->
-  <div>
-
-  <h2 style="text-align:center;">SELF DECLARATION</h2>
-
-  <p>
-  I, <b>${val("app_name")}</b>, son/daughter of <b>${val("father_name")}</b>, 
-  resident of <b>${val("app_address")}</b>, do hereby declare:
-  </p>
-
-  <ol>
-    <li>Late <b>${val("dead_name")}</b> expired on __________.</li>
-    <li>The following are legal heirs:</li>
-  </ol>
-
-  <table width="100%">
-    <tr>
-      <th>Sl No</th>
-      <th>Name</th>
-      <th>Relation</th>
-    </tr>
-    ${
-      Array.from({length: c}, (_,i)=>`
-      <tr>
-        <td>${i+1}</td>
-        <td>${val("name"+(i+1))}</td>
-        <td>${val("rel"+(i+1))}</td>
-      </tr>
-      `).join("")
-    }
-  </table>
-
-  <br>
-
-  <p>I declare all information is true.</p>
-
   <br><br>
 
-  <p style="text-align:right;">
-  Signature<br><br>
-  (${val("app_name")})
-  </p>
+  <!-- Witness -->
+  <div style="display:flex; justify-content:space-between;">
+    
+    <div>
+      <b>Witness</b><br><br>
+      1. ___________________<br><br>
+      2. ___________________<br><br>
+      3. ___________________
+    </div>
+
+    <div>
+      <br><br>
+      4. ___________________<br><br>
+      5. ___________________<br><br>
+      6. ___________________
+    </div>
 
   </div>
+
+  <br><br><br>
+
+  <div style="display:flex; justify-content:space-between;">
+    <div>Member Signature</div>
+    <div>Prodhan Signature</div>
+  </div>
+
   `;
 
   document.getElementById("printBtn").style.display = "block";
 }
 
+// PRINT
 function printPage(){
   window.print();
 }
