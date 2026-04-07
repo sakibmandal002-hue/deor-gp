@@ -1,0 +1,75 @@
+document.getElementById("paper").innerHTML = `
+
+<div class="header">
+  <h2>DEOR GRAM PANCHAYAT</h2>
+  <p>Deor, Dakshin Dinajpur</p>
+</div>
+
+<br>
+
+<p><b>TO WHOM IT MAY CONCERN</b></p>
+
+<p style="text-align:justify;">
+This is to certify that Late <b>${val(data.deceased)}</b>, 
+${val(data.relation)}, was a permanent resident of 
+<b>${val(data.deadAddress)}</b>. 
+
+He/She passed away , 
+leaving behind the following legal heirs:
+</p>
+
+<br>
+
+<table border="1" width="100%" cellspacing="0" cellpadding="5">
+<tr>
+  <th>Sl. No.</th>
+  <th>Name of Legal Heir</th>
+  <th>Age</th>
+  <th>Relationship with Deceased</th>
+  <th>Address</th>
+  <th>EPIC</th>
+</tr>
+
+${data.heirs?.map((h,i)=>`
+<tr>
+  <td>${i+1}</td>
+  <td>${val(h.name)}</td>
+  <td>${val(h.age)}</td>
+  <td>${val(h.rel)}</td>
+  <td>${val(h.addr)}</td>
+  <td>${val(h.epic) || "N/A"}</td>
+</tr>
+`).join("")}
+
+</table>
+
+<br><br>
+
+<p style="text-align:justify;">
+It is further certified that there are no other legal heirs, successors, 
+or survivors of the deceased other than those listed above.
+</p>
+
+<br>
+
+<p>
+This certificate is issued to <b>${val(data.applicant)}</b> for official purpose.
+</p>
+
+<br><br>
+
+<p><b>Date:</b> ${new Date().toLocaleDateString()}</p>
+<p><b>Place:</b> Deor Gram Panchayat</p>
+
+<br><br><br>
+
+<div style="display:flex; justify-content:space-between;">
+  <div>
+    ___________________________<br>
+    Signature of Issuing Authority
+  </div>
+
+ 
+</div>
+
+`;
