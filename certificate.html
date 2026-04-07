@@ -60,25 +60,11 @@
       box-sizing: border-box;
     }
 
-    /* PRINT CONTROL */
     @media print {
-
-      .sidebar {
-        display: none;
-      }
-
-      .no-print {
-        display: none;
-      }
-
-      .main {
-        margin: 0;
-      }
-
-      body {
-        background: white;
-      }
-
+      .sidebar { display: none; }
+      .no-print { display: none; }
+      .main { margin: 0; }
+      body { background: white; }
     }
   </style>
 </head>
@@ -173,7 +159,7 @@ async function generateID(){
 // RESET
 window.resetForm = () => location.reload();
 
-// HEIRS
+// HEIRS INPUT
 window.createHeirs = function(){
   let count = parseInt(document.getElementById("count").value);
   let container = document.getElementById("heirs");
@@ -189,7 +175,7 @@ window.createHeirs = function(){
         <input id="rel${i}" placeholder="Relation">
         <input id="addr${i}" placeholder="Address">
         <input id="age${i}" placeholder="Age">
-        <input id="epic${i}" placeholder="EPIC (Optional)">
+        <input id="epic${i}" placeholder="EPIC">
       </div>
     `;
   }
@@ -200,25 +186,35 @@ window.generate = async function(){
 
   let ackID = await generateID();
   let now = new Date();
-
   let count = parseInt(document.getElementById("count").value) || 0;
 
   function val(id){ return document.getElementById(id)?.value || "-" }
 
+  // 🔥 HEIRS ARRAY
+  let heirs = [];
   let heirsHTML = "";
+
   for(let i=1;i<=count;i++){
+    let h = {
+      name: val("name"+i),
+      rel: val("rel"+i),
+      age: val("age"+i),
+      epic: val("epic"+i),
+      addr: val("addr"+i)
+    };
+
+    heirs.push(h);
+
     heirsHTML += `
       <p><b>Legal Heir ${i}:</b>
-      ${val("name"+i)}, ${val("rel"+i)},
-      Age: ${val("age"+i)},
-      EPIC: ${val("epic"+i) || "N/A"},
-      Address: ${val("addr"+i)}</p>
+      ${h.name}, ${h.rel}, Age: ${h.age},
+      EPIC: ${h.epic || "N/A"},
+      Address: ${h.addr}</p>
     `;
   }
 
-  let content = `
-    <div>
-
+  // OUTPUT
+  document.getElementById("output").innerHTML = `
     <h2 style="text-align:center;">DEOR GRAM PANCHAYAT</h2>
     <h3 style="text-align:center;">LEGAL HEIR APPLICATION</h3>
 
@@ -240,47 +236,21 @@ window.generate = async function(){
     <br>
 
     <h3>Legal Heirs Details:</h3>
-    ${heirsHTML || "-"}
+    ${heirsHTML}
 
-    <br><br>
-
-    <p>
-    I hereby declare that the above information is true and correct.
-    </p>
-
-    <br><br>
-
-    <h4>Witness:</h4>
-
-    1. ___________________________<br><br>
-    2. ___________________________<br><br>
-    3. ___________________________<br><br>
-    4. ___________________________<br><br>
-    5. ___________________________
-
-    <br><br><br>
-
-    <div style="display:flex; justify-content:space-between;">
-      <div>
-        ___________________________<br>
-        Signature of Member
-      </div>
-
-      <div>
-        ___________________________<br>
-        Signature of Pradhan
-      </div>
-    </div>
-
-    </div>
   `;
 
-  document.getElementById("output").innerHTML = content;
-
+  // 🔥 FULL SAVE
   await addDoc(collection(db, "applications"), {
     ackID,
     applicant: val("app_name"),
-    createdAt: now
+    address: val("app_address"),
+    father: val("father_name"),
+    deceased: val("dead_name"),
+    relation: val("relation_name"),
+    deadAddress: val("dead_address"),
+    heirs: heirs,
+    createdAt: new Date()
   });
 
   document.getElementById("printBtn").style.display = "block";
@@ -288,14 +258,6 @@ window.generate = async function(){
 
 // PRINT
 window.printPage = function(){
-
-  let content = document.getElementById("output");
-
-  if(!content.innerHTML.trim()){
-    alert("Generate form first");
-    return;
-  }
-
   window.print();
 }
 
