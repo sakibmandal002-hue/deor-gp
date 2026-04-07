@@ -17,33 +17,33 @@
       padding: 20mm;
       box-sizing: border-box;
       position: relative;
+      overflow: hidden;
     }
 
-    /* WATERMARK */
+    /* ✅ WATERMARK FIX */
     #paper::before {
       content: "";
       position: absolute;
-      top: 45%;
+      top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 400px;
-      height: 400px;
-      background: url('letterhead.png') no-repeat center;
+      
+      width: 80%;
+      height: 80%;
+
+      background-image: url("letterhead.jpg"); /* 🔥 FIXED */
+      background-repeat: no-repeat;
+      background-position: center;
       background-size: contain;
+
       opacity: 0.08;
       z-index: 0;
+      pointer-events: none;
     }
 
     .content {
       position: relative;
       z-index: 2;
-    }
-
-    .header {
-      text-align: center;
-      border-bottom: 2px solid black;
-      padding-bottom: 10px;
-      margin-bottom: 10px;
     }
 
     table {
@@ -58,6 +58,11 @@
     @media print {
       body { background: white; }
       button { display: none; }
+
+      /* print এ watermark clear থাকবে */
+      #paper::before {
+        opacity: 0.08;
+      }
     }
   </style>
 </head>
@@ -72,7 +77,7 @@
 
 <script>
 
-// 🔥 SAFE DATA LOAD
+// ✅ SAFE DATA LOAD
 let data = JSON.parse(localStorage.getItem("certData"));
 
 if(!data){
@@ -80,13 +85,11 @@ if(!data){
   throw new Error("No Data");
 }
 
-console.log("CERT DATA:", data); // debug
-
 function val(v){
   return v ? v : "-";
 }
 
-// 🔥 HEIRS TABLE
+// ✅ HEIRS TABLE
 let heirsRows = "";
 
 if(data.heirs && data.heirs.length > 0){
@@ -106,23 +109,12 @@ if(data.heirs && data.heirs.length > 0){
   heirsRows = `<tr><td colspan="6">No Heir Data</td></tr>`;
 }
 
-// 🔥 FINAL CERTIFICATE
+// ✅ FINAL CERTIFICATE
 document.getElementById("content").innerHTML = `
-
-<div class="header">
-  <h3>Office of the Prodhan</h3>
-  <h2>No. 6 Deor Gram Panchayat</h2>
-  <p>Vill-Jarlai, P.O-Deor, P.S-Kumarganj, Dist-Dakshin Dinajpur, Pin-733140</p>
-</div>
-
-<p>
-<b>Memo No:</b> ________/DGP
-<span style="float:right;"><b>Date:</b> ${new Date().toLocaleDateString()}</span>
-</p>
 
 <br>
 
-<p><b>TO WHOM IT MAY CONCERN</b></p>
+<p style="text-align:center;"><b>TO WHOM IT MAY CONCERN</b></p>
 
 <p style="text-align:justify;">
 This is to certify that Late <b>${val(data.deceased)}</b>, 
@@ -172,11 +164,6 @@ This certificate is issued to <b>${val(data.applicant)}</b> for official purpose
   <div>
     ___________________________<br>
     Signature of Issuing Authority
-  </div>
-
-  <div style="text-align:right;">
-    ___________________________<br>
-    Pradhan
   </div>
 </div>
 
