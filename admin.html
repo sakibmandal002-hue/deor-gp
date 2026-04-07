@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
+  authDomain: "deor-gp.firebaseapp.com",
+  projectId: "deor-gp",
+  appId: "1:119940582286:web:f39346b6cc185809a232df"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    alert("Login Required");
+    window.location.href = "login.html";
+  }
+});
+
+</script>
+  <title>Admin Panel</title>
+</head>
+
+<body>
+
+<h2>All Applications</h2>
+
+<input id="search" placeholder="Search by ID">
+<button onclick="searchData()">Search</button>
+
+<br><br>
+
+<table border="1" width="100%" id="table">
+<tr>
+<th>ID</th>
+<th>Applicant</th>
+<th>Date</th>
+</tr>
+
+</table>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "deor-gp.firebaseapp.com",
+  projectId: "deor-gp"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allData = [];
+
+async function loadData(){
+
+  const snapshot = await getDocs(collection(db,"applications"));
+
+  snapshot.forEach(doc=>{
+    let d = doc.data();
+    allData.push(d);
+
+    document.getElementById("table").innerHTML += `
+      <tr>
+        <td>${d.ackID}</td>
+        <td>${d.applicant}</td>
+        <td>${new Date(d.createdAt.seconds*1000).toLocaleDateString()}</td>
+      </tr>
+    `;
+  });
+
+}
+
+window.searchData = function(){
+
+  let val = document.getElementById("search").value;
+
+  let table = document.getElementById("table");
+  table.innerHTML = `<tr><th>ID</th><th>Applicant</th><th>Date</th></tr>`;
+
+  allData
+  .filter(d => d.ackID.includes(val))
+  .forEach(d=>{
+    table.innerHTML += `
+      <tr>
+        <td>${d.ackID}</td>
+        <td>${d.applicant}</td>
+        <td>${new Date(d.createdAt.seconds*1000).toLocaleDateString()}</td>
+      </tr>
+    `;
+  });
+
+}
+
+loadData();
+
+</script>
+
+</body>
+</html>

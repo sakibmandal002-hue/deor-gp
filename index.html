@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Deor Gram Panchayat</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      background: #f4f4f4;
+      text-align: center;
+    }
+
+    header {
+      background: green;
+      color: white;
+      padding: 15px;
+      position: relative;
+    }
+
+    .login-btn {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      background: white;
+      color: green;
+      padding: 8px 15px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    .container {
+      margin-top: 100px;
+    }
+
+    .box {
+      display: inline-block;
+      width: 220px;
+      height: 120px;
+      margin: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px #ccc;
+      line-height: 120px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .box:hover {
+      background: green;
+      color: white;
+    }
+  </style>
+
+</head>
+
+<body>
+
+<header>
+  <h2>Deor Gram Panchayat</h2>
+  <div style="position:absolute; top:20px; right:20px;">
+  <button onclick="goAdmin()">Admin Login</button>
+</div>
+
+<script>
+function goAdmin(){
+  window.location.href = "login.html";
+}
+</script>
+</header>
+
+<div class="container">
+
+  <div class="box" onclick="goLegal()">
+    Legal Heir
+  </div>
+
+  <div class="box" onclick="goFamily()">
+    Family Tree
+  </div>
+
+</div>
+
+<script>
+function goLegal(){
+  window.location = "certificate.html";
+}
+
+function goFamily(){
+  alert("Family Tree Page Coming Soon");
+}
+</script>
+
+</body>
+</html>
