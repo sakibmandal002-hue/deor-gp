@@ -35,7 +35,7 @@
       cursor: pointer;
       font-weight: bold;
     }
-
+  
     .submit { background: green; color: white; }
     .reset { background: red; color: white; }
     .pdf { background: blue; color: white; display: none; }
@@ -96,6 +96,7 @@
 <body>
 
 <div class="sidebar no-print">
+  <button onclick="goHome()" style="background: orange; color:white;">Home</button>
   <button class="reset" onclick="resetForm()">Reset</button>
   <button class="submit" onclick="generate()">Submit</button>
   <button class="pdf" id="printBtn" onclick="printPage()">Print</button>
