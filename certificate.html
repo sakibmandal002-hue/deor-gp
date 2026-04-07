@@ -121,26 +121,24 @@
 
 </div>
 
-<script type="module">
+<!-- 🔥 Firebase Compat (IMPORTANT) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
 
 const firebaseConfig = {
   apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
-  projectId: "deor-gp",
-  storageBucket: "deor-gp.appspot.com",
-  messagingSenderId: "119940582286",
-  appId: "1:119940582286:web:f39346b6cc185809a232df"
+  projectId: "deor-gp"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-// SERIAL ID
+// 🔢 SERIAL ID
 async function generateID(){
-  const snapshot = await getDocs(collection(db, "applications"));
+  const snapshot = await db.collection("applications").get();
   let max = 0;
 
   snapshot.forEach(doc => {
@@ -155,10 +153,12 @@ async function generateID(){
   return "2026-DGP-LHA-" + String(next).padStart(3,'0');
 }
 
-// RESET (Reload)
-window.resetForm = () => location.reload();
+// 🔄 RESET
+function resetForm(){
+  location.reload();
+}
 
-// HOME (🔥 FIXED)
+// 🏠 HOME (FIXED)
 function goHome(){
   document.getElementById("output").innerHTML = "";
   document.getElementById("printBtn").style.display = "none";
@@ -166,12 +166,11 @@ function goHome(){
   document.querySelectorAll("input").forEach(input => input.value = "");
   document.getElementById("heirs").innerHTML = "";
 
-  window.scrollTo(0,0);
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
-window.goHome = goHome;
 
-// HEIRS
-window.createHeirs = function(){
+// 👨‍👩‍👧 HEIRS
+function createHeirs(){
   let count = parseInt(document.getElementById("count").value);
   let container = document.getElementById("heirs");
   container.innerHTML = "";
@@ -192,18 +191,18 @@ window.createHeirs = function(){
   }
 }
 
-// GENERATE
-window.generate = async function(){
+// 📄 GENERATE
+async function generate(){
 
   let ackID = await generateID();
   let now = new Date();
-
   let formattedDate = now.toLocaleDateString("en-GB");
 
+  function val(id){
+    return document.getElementById(id)?.value || "-";
+  }
+
   let count = parseInt(document.getElementById("count").value) || 0;
-
-  function val(id){ return document.getElementById(id)?.value || "-" }
-
   let heirs = [];
 
   for(let i=1;i<=count;i++){
@@ -211,40 +210,45 @@ window.generate = async function(){
       name: val("name"+i),
       rel: val("rel"+i),
       age: val("age"+i),
-      epic: val("epic"+i),
       addr: val("addr"+i)
     });
   }
 
   document.getElementById("output").innerHTML = `
-<h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
+    <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
 
-<p><b>Name:</b> ${val("app_name")}</p>
-<p><b>Address:</b> ${val("app_address")}</p>
+    <p><b>Name:</b> ${val("app_name")}</p>
+    <p><b>Father:</b> ${val("father_name")}</p>
+    <p><b>Address:</b> ${val("app_address")}</p>
 
-<h4>Legal Heirs</h4>
+    <h4>Deceased</h4>
+    <p><b>Name:</b> ${val("dead_name")}</p>
+    <p><b>Relation:</b> ${val("relation_name")}</p>
 
-<table border="1" width="100%">
-<tr><th>Sl</th><th>Name</th><th>Age</th><th>Relation</th></tr>
+    <h4>Legal Heirs</h4>
 
-${heirs.map((h,i)=>`
-<tr>
-<td>${i+1}</td>
-<td>${h.name}</td>
-<td>${h.age}</td>
-<td>${h.rel}</td>
-</tr>
-`).join("")}
+    <table border="1" width="100%">
+      <tr><th>Sl</th><th>Name</th><th>Age</th><th>Relation</th><th>Address</th></tr>
+      ${heirs.map((h,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td>${h.name}</td>
+          <td>${h.age}</td>
+          <td>${h.rel}</td>
+          <td>${h.addr}</td>
+        </tr>
+      `).join("")}
+    </table>
 
-</table>
+    <br>
+    <p><b>Date:</b> ${formattedDate}</p>
+  `;
 
-<br>
-<p><b>Date:</b> ${formattedDate}</p>
-`;
-
-  await addDoc(collection(db, "applications"), {
+  await db.collection("applications").add({
     ackID,
     applicant: val("app_name"),
+    father: val("father_name"),
+    deceased: val("dead_name"),
     heirs,
     createdAt: new Date()
   });
@@ -252,8 +256,8 @@ ${heirs.map((h,i)=>`
   document.getElementById("printBtn").style.display = "block";
 }
 
-// PRINT
-window.printPage = function(){
+// 🖨 PRINT
+function printPage(){
   window.print();
 }
 
