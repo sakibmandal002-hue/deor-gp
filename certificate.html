@@ -1,3 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Legal Heir Application</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    input {
+      display: block;
+      margin: 5px 0;
+      padding: 5px;
+      width: 300px;
+    }
+
+    .box {
+      background: #fff;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 8px 15px;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    #output {
+      background: #fff;
+      padding: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Legal Heir Application</h2>
+
+<input id="app_name" placeholder="Applicant Name">
+<input id="father_name" placeholder="Father Name">
+<input id="app_address" placeholder="Applicant Address">
+
+<input id="dead_name" placeholder="Deceased Name">
+<input id="relation_name" placeholder="Relation with Deceased">
+<input id="dead_address" placeholder="Deceased Address">
+
+<input id="count" type="number" placeholder="Number of Heirs">
+
+<button onclick="createHeirs()">Create Heirs</button>
+
+<div id="heirs"></div>
+
+<br>
+
+<button onclick="generate()">Generate</button>
+<button onclick="resetForm()">Reset</button>
+
+<div id="output"></div>
+
+<button id="printBtn" style="display:none;" onclick="printPage()">Print</button>
+
+<!-- ✅ SCRIPT (BOTTOM = NO BUG) -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -8,7 +76,7 @@ import {
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ✅ FULL CONFIG (FIXED)
+// ✅ CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
@@ -20,11 +88,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-// HOME
-window.goHome = function(){
-  window.location.href = "index.html";
-}
 
 // RESET
 window.resetForm = function(){
@@ -62,13 +125,13 @@ window.createHeirs = function(){
   }
 }
 
-// VALUE SAFE GET
+// SAFE VALUE
 function val(id){
   let el = document.getElementById(id);
   return el && el.value.trim() !== "" ? el.value.trim() : "-";
 }
 
-// GENERATE + SAVE
+// GENERATE
 window.generate = async function(){
 
   let c = parseInt(document.getElementById("count").value) || 0;
@@ -78,7 +141,6 @@ window.generate = async function(){
     return;
   }
 
-  // ✅ BASIC VALIDATION
   if(val("app_name") === "-" || val("father_name") === "-"){
     alert("Please fill required fields");
     return;
@@ -111,7 +173,6 @@ window.generate = async function(){
     });
   }
 
-  // ✅ SMART ACK ID (NO DUPLICATE FORMAT)
   let now = new Date();
   let year = now.getFullYear();
   let ackID = `${year}-DGP-LHA-${Date.now().toString().slice(-5)}`;
@@ -131,7 +192,7 @@ window.generate = async function(){
       createdAt: serverTimestamp()
     });
 
-    // ✅ OUTPUT (STRUCTURE SAME — NO CHANGE)
+    // ✅ SAME PDF STRUCTURE (UNCHANGED)
     document.getElementById("output").innerHTML = `
 
 <h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
@@ -176,7 +237,6 @@ ${rows}
 <br>
 
 <p>I hereby declare that the above information is true to the best of my knowledge. Kindly issue the Legal Heir Certificate.</p>
-
 
 <br><br>
 
@@ -257,3 +317,6 @@ window.printPage = function(){
 }
 
 </script>
+
+</body>
+</html>
