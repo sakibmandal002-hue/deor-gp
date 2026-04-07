@@ -40,7 +40,8 @@ button {
   display:none;
 
   background:url('letterhead.jpg') no-repeat top center;
-  background-size:cover;
+  background-size:100% auto;
+  overflow:visible;
 }
 
 /* Tree */
@@ -84,6 +85,7 @@ button {
   display:flex;
   justify-content:center;
   align-items:flex-start;
+  flex-wrap:wrap;
 }
 
 .sibling-item {
@@ -102,6 +104,7 @@ button {
 
 .tree-center {
   text-align:center;
+  margin-bottom:40px;
 }
 
 .print-btn {
@@ -115,7 +118,52 @@ button {
 
 <h2>Family Tree Form</h2>
 
-<!-- FORM SAME -->
+<!-- FORM -->
+
+<div class="box">
+<h3>Applicant Details</h3>
+<input id="app_name" placeholder="Applicant Name">
+<input id="app_relation" placeholder="Relation">
+<input id="app_father" placeholder="Father Name">
+<input id="app_address" placeholder="Address">
+<input id="app_epic" placeholder="EPIC">
+<input id="app_age" placeholder="Age">
+<select id="app_gender">
+<option>Male</option>
+<option>Female</option>
+</select>
+</div>
+
+<div class="box">
+<h3>Father Details</h3>
+<input id="f_name" placeholder="Father Name">
+<input id="f_father" placeholder="Grandfather">
+<input id="f_epic" placeholder="EPIC">
+<select id="f_status">
+<option>Alive</option>
+<option>Deceased</option>
+</select>
+</div>
+
+<div class="box">
+<h3>Mother Details</h3>
+<input id="m_name" placeholder="Mother Name">
+<input id="m_father" placeholder="Grandfather">
+<input id="m_epic" placeholder="EPIC">
+<select id="m_status">
+<option>Alive</option>
+<option>Deceased</option>
+</select>
+</div>
+
+<div class="box">
+<h3>Siblings</h3>
+<input id="count" type="number" placeholder="No. of siblings">
+<button onclick="createSiblings()">Create</button>
+<div id="siblingsForm"></div>
+</div>
+
+<button onclick="generate()">Generate Certificate</button>
 
 <!-- Certificate -->
 <div id="certificate">
@@ -124,11 +172,37 @@ button {
 </div>
 
 <script>
-// SAME SCRIPT (NO CHANGE)
-</script>
+let count = 0;
 
-<script>
-// 🔥 ONLY CHANGE INSIDE generate()
+function createSiblings(){
+  count = document.getElementById("count").value;
+  let html = "";
+
+  for(let i=1;i<=count;i++){
+    html += `
+    <div class="box">
+      <h4>Sibling ${i}</h4>
+      <input id="name${i}" placeholder="Name">
+      <select id="gender${i}">
+        <option>Male</option>
+        <option>Female</option>
+      </select>
+      <input id="age${i}" placeholder="Age">
+      <input id="epic${i}" placeholder="EPIC">
+      <input id="addr${i}" placeholder="Address">
+      <select id="marital${i}">
+        <option>Married</option>
+        <option>Unmarried</option>
+      </select>
+      <select id="status${i}">
+        <option>Alive</option>
+        <option>Deceased</option>
+      </select>
+    </div>`;
+  }
+
+  document.getElementById("siblingsForm").innerHTML = html;
+}
 
 function generate(){
 
@@ -147,7 +221,6 @@ function generate(){
       <div class="sibling-item">
         <div class="v-line"></div>
         <div class="number">${i}</div>
-
         <div class="sibling-box" style="font-size:${fontSize}px;">
           <b>${name}</b><br>
           ${document.getElementById("gender"+i).value}<br>
@@ -162,7 +235,6 @@ function generate(){
   }
 
   let html = `
-  <!-- 🔥 ONLY CHANGE: margin-top added -->
   <h3 style="text-align:center; margin-top:120px;">
   FAMILY TREE CERTIFICATE
   </h3>
@@ -181,7 +253,7 @@ function generate(){
   This is to certify that the family composition of 
   <b>${app_name.value}</b>, ${app_relation.value} of 
   <b>${app_father.value}</b>, resident of ${app_address.value}, 
-  under this Gram Panchayat, is as follows:
+  is as follows:
   </p>
 
   <div class="tree-center">
@@ -212,9 +284,9 @@ function generate(){
 
   </div>
 
-  <br><br>
-
-  <p style="text-align:right;">Signature of Pradhan</p>
+  <p style="text-align:right; margin-top:80px;">
+  Signature of Pradhan
+  </p>
   `;
 
   document.getElementById("output").innerHTML = html;
