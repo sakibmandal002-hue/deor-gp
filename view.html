@@ -35,9 +35,9 @@
       background-image: url("letterhead.jpg");
       background-repeat: no-repeat;
       background-position: center;
-      background-size: 100% 100%; /* FULL PAGE */
+      background-size: 100% 100%;
 
-      opacity: 1; /* 🔥 perfect visibility */
+      opacity: 1;
 
       z-index: 0;
       pointer-events: none;
@@ -109,6 +109,14 @@ function val(v){
   return v ? v : "-";
 }
 
+// 🔥 NEW RELATION FORMAT (ADD ONLY)
+function relationText(){
+  if(data.relType && data.relName){
+    return data.relType + " " + data.relName;
+  }
+  return val(data.relation);
+}
+
 // ✅ HEIRS TABLE
 let heirsRows = "";
 
@@ -140,7 +148,7 @@ document.getElementById("content").innerHTML = `
 
 <p style="text-align:justify;">
 This is to certify that Late <b>${val(data.deceased)}</b>, 
-${val(data.relation)}, was a permanent resident of 
+<b>${relationText()}</b>, was a permanent resident of 
 <b>${val(data.deadAddress)}</b>.
 </p>
 
@@ -183,8 +191,7 @@ This certificate is issued to <b>${val(data.applicant)}</b> for official purpose
 
 <br><br><br><br>
 
-<div style="display:flex; justify-content:space-between;">
- <div style="
+<div style="
   position: absolute;
   bottom: 40px;
   right: 40px;
@@ -192,7 +199,6 @@ This certificate is issued to <b>${val(data.applicant)}</b> for official purpose
 ">
   ___________________________<br>
   Signature of Issuing Authority
-</div>
 </div>
 
 `;
