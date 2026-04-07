@@ -179,63 +179,116 @@ function generate(){
     `;
   }
 
-  document.getElementById("output").innerHTML = `
-    <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
+  function generate(){
 
-    <p>To,<br>
-    The Prodhan<br>
-    Deor Gram Panchayat</p>
+  let c = document.getElementById("count").value;
+  let rows = "";
 
-    <p><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
-
-    <p><b>Name:</b> ${val("app_name")}<br>
-    <b>Father:</b> ${val("father_name")}<br>
-    <b>Address:</b> ${val("app_address")}</p>
-
-    <h4>Details of Deceased</h4>
-    <p><b>Name:</b> ${val("dead_name")}<br>
-    <b>Relation:</b> ${val("relation_name")}<br>
-    <b>Address:</b> ${val("dead_address")}</p>
-
-    <h4>Legal Heirs</h4>
-
-    <table border="1" width="100%" cellspacing="0" cellpadding="5">
+  for(let i=1;i<=c;i++){
+    rows += `
       <tr>
-        <th>Sl</th><th>Name</th><th>Age</th><th>Relation</th><th>Address</th>
+        <td>${i}</td>
+        <td>${val("name"+i)}</td>
+        <td>${val("age"+i)}</td>
+        <td>${val("rel"+i)}</td>
+        <td>${val("addr"+i)}</td>
+        <td>${val("epic"+i)}</td>
       </tr>
-      ${rows}
-    </table>
+    `;
+  }
 
-    <br>
+  document.getElementById("output").innerHTML = `
+  
+  <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
 
-    <p><b>Declaration:</b> I hereby declare that the above information is true.</p>
+  <p>
+  To,<br>
+  The Prodhan,<br>
+  Deor Gram Panchayat<br>
+  Vill-Jarlai, P.O-Deor, P.S-Kumarganj,<br>
+  Dist-Dakshin Dinajpur, Pin-733140
+  </p>
 
-    <br>
+  <p><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
 
-    <p>Date: ____________</p>
+  <p>
+  <b>Name of the Applicant:</b> ${val("app_name")}<br>
+  <b>Father's Name:</b> ${val("father_name")}<br>
+  <b>Address:</b> ${val("app_address")}
+  </p>
 
-    <br><br>
+  <h4>Details of the Deceased</h4>
+  <p>
+  <b>Name:</b> ${val("dead_name")}<br>
+  <b>Father/Husband Name:</b> ${val("relation_name")}<br>
+  <b>Last Address:</b> ${val("dead_address")}
+  </p>
 
-    <p style="text-align:right;">Signature of Applicant</p>
+  <h4>List of Legal Heirs</h4>
 
-    <br><br>
+  <table border="1" width="100%" cellspacing="0" cellpadding="5">
+    <tr>
+      <th>Sl No</th>
+      <th>Name</th>
+      <th>Age</th>
+      <th>Relation</th>
+      <th>Address</th>
+      <th>EPIC</th>
+    </tr>
+    ${rows}
+  </table>
 
-    <!-- WITNESS -->
-    <div class="two-col">
-      <div class="col">
-        1. __________________<br><br>
-        2. __________________<br><br>
-        3. __________________
-      </div>
+  <br>
 
-      <div class="col">
-        4. __________________<br><br>
-        5. __________________<br><br>
-        6. __________________
-      </div>
+  <p><b>Purpose of Certificate:</b> Official Purpose</p>
+
+  <h4>List of Documents Attached</h4>
+
+  <p>
+  ☐ Death Certificate<br>
+  ☐ Identity Proof (Aadhaar/PAN/Voter ID)<br>
+  ☐ Address Proof<br>
+  ☐ Self-Affidavit / Undertaking
+  </p>
+
+  <br>
+
+  <h4>Declaration</h4>
+  <p>
+  I hereby declare that the information above is true to the best of my knowledge and belief.
+  </p>
+
+  <br>
+
+  <div style="display:flex; justify-content:space-between;">
+    <div>Date: ____________</div>
+    <div>Place: ____________</div>
+  </div>
+
+  <br><br>
+
+  <p style="text-align:right;">Signature of Applicant</p>
+
+  <br><br>
+
+  <!-- Witness -->
+  <div style="display:flex; justify-content:space-between;">
+    
+    <div>
+      1. ___________________<br><br>
+      2. ___________________<br><br>
+      3. ___________________
     </div>
 
-    <br><br><br>
+    <div>
+      4. ___________________<br><br>
+      5. ___________________<br><br>
+      6. ___________________
+    </div>
+
+  </div>
+
+  <br><br><br>
 
     <!-- SIGNATURE -->
     <div class="two-col">
