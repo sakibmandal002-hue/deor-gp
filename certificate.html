@@ -67,6 +67,15 @@
       box-sizing: border-box;
     }
 
+    table {
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid black;
+      padding: 5px;
+    }
+
     @media print {
       .sidebar, .no-print {
         display: none;
@@ -118,23 +127,18 @@
 
 <script>
 
-// HOME
 function goHome(){
   window.location.href = "./index.html";
 }
 
-// RESET
 function resetForm(){
   location.reload();
 }
 
-// CREATE HEIRS
 function createHeirs(){
   let c = parseInt(document.getElementById("count").value) || 0;
   let h = document.getElementById("heirs");
   h.innerHTML = "";
-
-  if(c <= 0) return;
 
   for(let i=1;i<=c;i++){
     h.innerHTML += `
@@ -150,17 +154,12 @@ function createHeirs(){
   }
 }
 
-// VALUE
 function val(id){
   let el = document.getElementById(id);
   return el && el.value ? el.value : "-";
 }
 
-// GENERATE
 function generate(){
-
- 
-
 
   let c = parseInt(document.getElementById("count").value) || 0;
 
@@ -186,7 +185,7 @@ function generate(){
 
   document.getElementById("output").innerHTML = `
   
-  <!-- PAGE 1: APPLICATION -->
+  <!-- PAGE 1 -->
   <div style="page-break-after: always;">
 
   <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
@@ -202,21 +201,21 @@ function generate(){
   <p style="text-align:center;"><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
 
   <p>
-  <b>Name of the Applicant:</b> ${val("app_name")}<br>
-  <b>Father's Name:</b> ${val("father_name")}<br>
+  <b>Name:</b> ${val("app_name")}<br>
+  <b>Father:</b> ${val("father_name")}<br>
   <b>Address:</b> ${val("app_address")}
   </p>
 
-  <h4>Details of the Deceased</h4>
+  <h4>Deceased Details</h4>
   <p>
   <b>Name:</b> ${val("dead_name")}<br>
-  <b>Father/Husband Name:</b> ${val("relation_name")}<br>
-  <b>Last Address:</b> ${val("dead_address")}
+  <b>Relation:</b> ${val("relation_name")}<br>
+  <b>Address:</b> ${val("dead_address")}
   </p>
 
-  <h4>List of Legal Heirs</h4>
+  <h4>Legal Heirs</h4>
 
-  <table border="1" width="100%" cellspacing="0" cellpadding="5">
+  <table width="100%">
     <tr>
       <th>Sl No</th>
       <th>Name</th>
@@ -227,10 +226,6 @@ function generate(){
     </tr>
     ${rows}
   </table>
-
-  <br>
-
-  <p><b>Purpose of Certificate:</b> Official Purpose</p>
 
   <br>
 
@@ -246,24 +241,22 @@ function generate(){
   </div>
 
 
-  <!-- PAGE 2: SELF DECLARATION -->
+  <!-- PAGE 2 -->
   <div>
 
   <h2 style="text-align:center;">SELF DECLARATION</h2>
 
   <p>
   I, <b>${val("app_name")}</b>, son/daughter of <b>${val("father_name")}</b>, 
-  resident of <b>${val("app_address")}</b>, do hereby solemnly affirm and declare that:
+  resident of <b>${val("app_address")}</b>, do hereby declare:
   </p>
 
   <ol>
-    <li>That Late <b>${val("dead_name")}</b>, son/daughter/spouse of <b>${val("relation_name")}</b>, 
-    resident of <b>${val("dead_address")}</b>, expired on ________.</li>
-
-    <li>That the following persons are the only legal heirs of the deceased:</li>
+    <li>Late <b>${val("dead_name")}</b> expired on __________.</li>
+    <li>The following are legal heirs:</li>
   </ol>
 
-  <table border="1" width="100%" cellspacing="0" cellpadding="5">
+  <table width="100%">
     <tr>
       <th>Sl No</th>
       <th>Name</th>
@@ -282,33 +275,21 @@ function generate(){
 
   <br>
 
-  <ol start="3">
-    <li>That I declare that the above information is true and correct.</li>
-    <li>That nothing has been concealed.</li>
-  </ol>
-
-  <br><br>
-
-  <div style="display:flex; justify-content:space-between;">
-    <div>Date: ____________</div>
-    <div>Place: ____________</div>
-  </div>
+  <p>I declare all information is true.</p>
 
   <br><br>
 
   <p style="text-align:right;">
-  Signature of Deponent<br><br>
+  Signature<br><br>
   (${val("app_name")})
   </p>
 
   </div>
   `;
 
-
   document.getElementById("printBtn").style.display = "block";
 }
 
-// PRINT
 function printPage(){
   window.print();
 }
