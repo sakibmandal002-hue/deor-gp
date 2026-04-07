@@ -1,9 +1,124 @@
-document.getElementById("paper").innerHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Certificate View</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+    }
+
+    #paper {
+      width: 210mm;
+      min-height: 297mm;
+      margin: auto;
+      background: white;
+      padding: 20mm;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    /* WATERMARK */
+    #paper::before {
+      content: "";
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 400px;
+      background: url('letterhead.png') no-repeat center;
+      background-size: contain;
+      opacity: 0.08;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .header {
+      text-align: center;
+      border-bottom: 2px solid black;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 6px;
+      text-align: left;
+    }
+
+    @media print {
+      body { background: white; }
+      button { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+<button onclick="window.print()">Print</button>
+
+<div id="paper">
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+
+// 🔥 SAFE DATA LOAD
+let data = JSON.parse(localStorage.getItem("certData"));
+
+if(!data){
+  document.body.innerHTML = "<h2>No Data Found</h2>";
+  throw new Error("No Data");
+}
+
+console.log("CERT DATA:", data); // debug
+
+function val(v){
+  return v ? v : "-";
+}
+
+// 🔥 HEIRS TABLE
+let heirsRows = "";
+
+if(data.heirs && data.heirs.length > 0){
+  data.heirs.forEach((h,i)=>{
+    heirsRows += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${val(h.name)}</td>
+        <td>${val(h.age)}</td>
+        <td>${val(h.rel)}</td>
+        <td>${val(h.addr)}</td>
+        <td>${val(h.epic) || "N/A"}</td>
+      </tr>
+    `;
+  });
+} else {
+  heirsRows = `<tr><td colspan="6">No Heir Data</td></tr>`;
+}
+
+// 🔥 FINAL CERTIFICATE
+document.getElementById("content").innerHTML = `
 
 <div class="header">
-  <h2>DEOR GRAM PANCHAYAT</h2>
-  <p>Deor, Dakshin Dinajpur</p>
+  <h3>Office of the Prodhan</h3>
+  <h2>No. 6 Deor Gram Panchayat</h2>
+  <p>Vill-Jarlai, P.O-Deor, P.S-Kumarganj, Dist-Dakshin Dinajpur, Pin-733140</p>
 </div>
+
+<p>
+<b>Memo No:</b> ________/DGP
+<span style="float:right;"><b>Date:</b> ${new Date().toLocaleDateString()}</span>
+</p>
 
 <br>
 
@@ -14,32 +129,23 @@ This is to certify that Late <b>${val(data.deceased)}</b>,
 ${val(data.relation)}, was a permanent resident of 
 <b>${val(data.deadAddress)}</b>. 
 
-He/She passed away , 
+He/She passed away on <b>________</b> at <b>________</b>, 
 leaving behind the following legal heirs:
 </p>
 
 <br>
 
-<table border="1" width="100%" cellspacing="0" cellpadding="5">
+<table border="1" width="100%">
 <tr>
-  <th>Sl. No.</th>
-  <th>Name of Legal Heir</th>
+  <th>Sl</th>
+  <th>Name</th>
   <th>Age</th>
-  <th>Relationship with Deceased</th>
+  <th>Relation</th>
   <th>Address</th>
   <th>EPIC</th>
 </tr>
 
-${data.heirs?.map((h,i)=>`
-<tr>
-  <td>${i+1}</td>
-  <td>${val(h.name)}</td>
-  <td>${val(h.age)}</td>
-  <td>${val(h.rel)}</td>
-  <td>${val(h.addr)}</td>
-  <td>${val(h.epic) || "N/A"}</td>
-</tr>
-`).join("")}
+${heirsRows}
 
 </table>
 
@@ -58,7 +164,6 @@ This certificate is issued to <b>${val(data.applicant)}</b> for official purpose
 
 <br><br>
 
-<p><b>Date:</b> ${new Date().toLocaleDateString()}</p>
 <p><b>Place:</b> Deor Gram Panchayat</p>
 
 <br><br><br>
@@ -69,7 +174,15 @@ This certificate is issued to <b>${val(data.applicant)}</b> for official purpose
     Signature of Issuing Authority
   </div>
 
- 
+  <div style="text-align:right;">
+    ___________________________<br>
+    Pradhan
+  </div>
 </div>
 
 `;
+
+</script>
+
+</body>
+</html>
