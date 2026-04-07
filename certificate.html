@@ -1,9 +1,56 @@
 <!DOCTYPE html>
 <html>
-
 <head>
+  <title>Legal Heir Application</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .box {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 10px;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    #output {
+      background: #fff;
+      padding: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
 
 <h2>Legal Heir Application</h2>
+
+<!-- Buttons -->
+<button onclick="goHome()">⬅ Back to Home</button>
+<button onclick="resetForm()">🔄 Reset</button>
+<button onclick="generate()">✅ Submit</button>
+<button onclick="downloadPDF()" id="pdfBtn" style="display:none;">📄 Download PDF</button>
 
 <div class="box">
   <h3>Applicant Details</h3>
@@ -28,26 +75,20 @@
 <div class="box">
   <h3>Legal Heir Details</h3>
   <select id="count" onchange="createHeirs()">
-    <option value="">Select Legal Heir Count</option>
+    <option value="">Select Count</option>
     <option value="1">1</option>
     <option value="2">2</option>
     <option value="3">3</option>
     <option value="4">4</option>
     <option value="5">5</option>
-    <option value="6">6</option>
-    <option value="7">7</option>
-    <option value="8">8</option>
-    <option value="9">9</option>
-    <option value="10">10</option>
   </select>
   <div id="heirs"></div>
 </div>
 
-<button onclick="generate()">Generate</button>
-<button onclick="location.reload()">Reset</button>
-
 <div id="output"></div>
-<button id="printBtn" style="display:none;" onclick="window.print()">Print</button>
+
+<!-- PDF Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script type="module">
 
@@ -67,6 +108,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 🔙 Home
+window.goHome = function(){
+  window.location.href = "index.html";
+}
+
+// 🔄 Reset
+window.resetForm = function(){
+  location.reload();
+}
+
+// Create heirs
 window.createHeirs = function(){
   let c = parseInt(document.getElementById("count").value) || 0;
   let h = document.getElementById("heirs");
@@ -80,17 +132,18 @@ window.createHeirs = function(){
         <input id="rel${i}" placeholder="Relation">
         <input id="addr${i}" placeholder="Address">
         <input id="age${i}" placeholder="Age">
-        <input id="epic${i}" placeholder="EPIC (Optional)">
       </div>
     `;
   }
 }
 
+// value safe
 function val(id){
   let el = document.getElementById(id);
   return el && el.value.trim() !== "" ? el.value.trim() : "-";
 }
 
+// Submit
 window.generate = async function(){
 
   let c = parseInt(document.getElementById("count").value) || 0;
@@ -100,63 +153,39 @@ window.generate = async function(){
     return;
   }
 
-  if(val("app_name") === "-" || val("father_name") === "-"){
-    alert("Fill required fields");
-    return;
-  }
-
   let rows = "";
-  let heirsData = [];
 
   for(let i=1;i<=c;i++){
-
-    let name = val("name"+i);
-    let rel = val("rel"+i);
-    let addr = val("addr"+i);
-    let age = val("age"+i);
-    let epic = val("epic"+i);
-
     rows += `
       <tr>
         <td>${i}</td>
-        <td>${name}</td>
-        <td>${age}</td>
-        <td>${rel}</td>
-        <td>${addr}</td>
-        <td>${epic}</td>
+        <td>${val("name"+i)}</td>
+        <td>${val("age"+i)}</td>
+        <td>${val("rel"+i)}</td>
+        <td>${val("addr"+i)}</td>
       </tr>
     `;
-
-    heirsData.push({name, relation: rel, address: addr, age, epic});
   }
 
   let now = new Date();
   let ackID = `${now.getFullYear()}-DGP-LHA-${Date.now().toString().slice(-5)}`;
-  let today = now.toLocaleDateString();
 
   await addDoc(collection(db, "applications"), {
     ackID,
-    date: today,
     applicant: val("app_name"),
     fatherName: val("father_name"),
-    gender: val("gender"),
-    address: val("app_address"),
-    deceased: val("dead_name"),
-    deadParent: val("dead_parent"),
-    deadAddress: val("dead_address"),
-    heirs: heirsData,
-    status: "pending",
     createdAt: serverTimestamp()
   });
 
   document.getElementById("output").innerHTML = `
 
-<div style="display:flex; justify-content:space-between; font-weight:bold;">
-  <div>Application No: ${ackID}</div>
-  <div>Date: ${today}</div>
-</div>
-
 <h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
+
+<!-- ✅ NEW: Ack No + Date (Heading er niche) -->
+<div style="text-align:center; margin-bottom:15px; font-weight:bold;">
+  Acknowledgement No: ${ackID} <br>
+  Date: ${today}
+</div>
 
 <p><b>To</b><br>
 The Pradhan<br>
@@ -243,320 +272,17 @@ Signature of Pradhan
 </table>
 `;
 
-  document.getElementById("printBtn").style.display = "block";
+document.getElementById("printBtn").style.display = "block";
+  
 
-  alert("✅ Submitted Successfully");
+  alert("✅ Submitted");
 }
 
-</script>
-
-</body>
-</html>
-
-    input {
-      display: block;
-      margin: 5px 0;
-      padding: 5px;
-      width: 300px;
-    }
-
-    .box {
-      background: #fff;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      padding: 8px 15px;
-      margin: 5px;
-      cursor: pointer;
-    }
-
-    #output {
-      background: #fff;
-      padding: 20px;
-      margin-top: 20px;
-    }
-  </style>
-</head>
-
-<body>
-
-<h2>Legal Heir Application</h2>
-
-<input id="app_name" placeholder="Applicant Name">
-<input id="father_name" placeholder="Father Name">
-<input id="app_address" placeholder="Applicant Address">
-
-<input id="dead_name" placeholder="Deceased Name">
-<input id="relation_name" placeholder="Relation with Deceased">
-<input id="dead_address" placeholder="Deceased Address">
-
-<input id="count" type="number" placeholder="Number of Heirs">
-
-<button onclick="createHeirs()">Create Heirs</button>
-
-<div id="heirs"></div>
-
-<br>
-
-<button onclick="generate()">Generate</button>
-<button onclick="resetForm()">Reset</button>
-
-<div id="output"></div>
-
-<button id="printBtn" style="display:none;" onclick="printPage()">Print</button>
-
-<!-- ✅ SCRIPT (BOTTOM = NO BUG) -->
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-// ✅ CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
-  authDomain: "deor-gp.firebaseapp.com",
-  projectId: "deor-gp",
-  storageBucket: "deor-gp.firebasestorage.app",
-  messagingSenderId: "119940582286",
-  appId: "1:119940582286:web:f39346b6cc185809a232df"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// RESET
-window.resetForm = function(){
-  location.reload();
-}
-
-// CREATE HEIRS
-window.createHeirs = function(){
-  let c = parseInt(document.getElementById("count").value) || 0;
-
-  if(c <= 0){
-    alert("Enter valid number");
-    return;
-  }
-
-  if(c > 20){
-    alert("Max 20 heirs allowed");
-    return;
-  }
-
-  let h = document.getElementById("heirs");
-  h.innerHTML = "";
-
-  for(let i=1;i<=c;i++){
-    h.innerHTML += `
-      <div class="box">
-        <h4>Heir ${i}</h4>
-        <input id="name${i}" placeholder="Name">
-        <input id="age${i}" placeholder="Age">
-        <input id="rel${i}" placeholder="Relation">
-        <input id="addr${i}" placeholder="Address">
-        <input id="epic${i}" placeholder="EPIC">
-      </div>
-    `;
-  }
-}
-
-// SAFE VALUE
-function val(id){
-  let el = document.getElementById(id);
-  return el && el.value.trim() !== "" ? el.value.trim() : "-";
-}
-
-// GENERATE
-window.generate = async function(){
-
-  let c = parseInt(document.getElementById("count").value) || 0;
-
-  if(c <= 0){
-    alert("Enter number of heirs");
-    return;
-  }
-
-  if(val("app_name") === "-" || val("father_name") === "-"){
-    alert("Please fill required fields");
-    return;
-  }
-
-  let rows = "";
-  let heirsData = [];
-
-  for(let i=1;i<=c;i++){
-
-    let name = val("name"+i);
-    let age = val("age"+i);
-    let rel = val("rel"+i);
-    let addr = val("addr"+i);
-    let epic = val("epic"+i);
-
-    rows += `
-      <tr>
-        <td>${i}</td>
-        <td>${name}</td>
-        <td>${age}</td>
-        <td>${rel}</td>
-        <td>${addr}</td>
-        <td>${epic}</td>
-      </tr>
-    `;
-
-    heirsData.push({
-      name, age, relation: rel, address: addr, epic
-    });
-  }
-
-  let now = new Date();
-  let year = now.getFullYear();
-  let ackID = `${year}-DGP-LHA-${Date.now().toString().slice(-5)}`;
-
-  try{
-
-    await addDoc(collection(db, "applications"), {
-      ackID: ackID,
-      applicant: val("app_name"),
-      fatherName: val("father_name"),
-      address: val("app_address"),
-      deceased: val("dead_name"),
-      relation: val("relation_name"),
-      deadAddress: val("dead_address"),
-      heirs: heirsData,
-      status: "pending",
-      createdAt: serverTimestamp()
-    });
-
-    // ✅ SAME PDF STRUCTURE (UNCHANGED)
-    document.getElementById("output").innerHTML = `
-
-<h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
-
-<br>
-
-<p><b>To</b><br>
-The Pradhan<br>
-Deor Gram Panchayat<br>
-Kumarganj Development Block<br>
-Dakshin Dinajpur
-</p>
-
-<br>
-
-<p style="text-align:center;"><b>Subject: Application for Issuance of Legal Heir Certificate</b></p>
-
-<br>
-
-<p>Respected Sir/Madam,</p>
-
-<p>
-I, <b>${val("app_name")}</b>, son/daughter of <b>${val("father_name")}</b>, resident of <b>${val("app_address")}</b>, do hereby state that <b>Late ${val("dead_name")}</b>, <b>${val("relation_name")}</b>, was a permanent resident of <b>${val("dead_address")}</b>.
-</p>
-
-<p>The following are the legal heirs:</p>
-
-<br>
-
-<table border="1" width="100%" cellpadding="5">
-<tr>
-<th>Sl</th>
-<th>Name</th>
-<th>Age</th>
-<th>Relation</th>
-<th>Address</th>
-<th>EPIC</th>
-</tr>
-${rows}
-</table>
-
-<br>
-
-<p>I hereby declare that the above information is true to the best of my knowledge. Kindly issue the Legal Heir Certificate.</p>
-
-<br><br>
-
-<p>Date: ${new Date().toLocaleDateString()}</p>
-<p>Place: Deor Gram Panchayat</p>
-
-<br><br><br>
-
-<div style="text-align:right;">
-_________________________<br>
-Signature of Applicant<br>
-${val("app_name")}
-</div>
-
-<br><br><br>
-
-<table width="100%">
-<tr>
-<td>
-
-_________________________<br>
-Witness 1<br><br>
-
-_________________________<br>
-Witness 2<br><br>
-
-_________________________<br>
-Witness 3
-
-</td>
-
-<td align="right">
-
-_________________________<br>
-Witness 4<br><br>
-
-_________________________<br>
-Witness 5<br><br>
-
-_________________________<br>
-Witness 6
-
-</td>
-</tr>
-</table>
-
-<br><br>
-
-<table width="100%">
-<tr>
-<td>
-_________________________<br>
-Signature of Pradhan
-</td>
-
-<td align="right">
-_________________________<br>
-Signature of Member
-</td>
-</tr>
-</table>
-
-`;
-
-    document.getElementById("printBtn").style.display = "block";
-
-    alert("✅ Submitted Successfully");
-
-  }catch(err){
-    alert("Error: " + err.message);
-  }
-
-}
-
-// PRINT
-window.printPage = function(){
-  window.print();
+// PDF download
+window.downloadPDF = function(){
+  let element = document.getElementById("output");
+
+  html2pdf().from(element).save("Legal_Heir_Application.pdf");
 }
 
 </script>
