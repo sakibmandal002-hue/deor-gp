@@ -198,26 +198,126 @@ window.generate = async function(){
   }
 
   // OUTPUT PREVIEW
-  document.getElementById("output").innerHTML = `
-    <h2 style="text-align:center;">DEOR GRAM PANCHAYAT</h2>
-    <h3 style="text-align:center;">LEGAL HEIR APPLICATION</h3>
+ document.getElementById("output").innerHTML = `
 
-    <p><b>Acknowledgement No:</b> ${ackID}</p>
-    <p><b>Date:</b> ${now.toLocaleDateString()}</p>
+<div style="width:210mm; min-height:297mm; padding:20mm; font-family:Arial;">
 
-    <hr>
+<h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
 
-    <p><b>Applicant:</b> ${val("app_name")}</p>
-    <p><b>Address:</b> ${val("app_address")}</p>
-    <p><b>Father:</b> ${val("father_name")}</p>
+<p>To,<br>
+The Prodhan,<br>
+Deor Gram Panchayat<br>
+Vill-Jarlai, P.O-Deor, P.S-Kumarganj,<br>
+Dist-Dakshin Dinajpur, Pin-733140
+</p>
 
-    <p><b>Deceased:</b> ${val("dead_name")}</p>
-    <p><b>Relation:</b> ${val("relation_name")}</p>
-    <p><b>Address:</b> ${val("dead_address")}</p>
+<p><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
 
-    <h3>Heirs</h3>
-    ${heirsHTML}
-  `;
+<br>
+
+<p><b>Name of the Applicant:</b> ${val("app_name")}</p>
+<p><b>Father's Name of the Applicant:</b> ${val("father_name")}</p>
+<p><b>Address of the Applicant:</b> ${val("app_address")}</p>
+
+<br>
+
+<h4>Details of the Deceased:</h4>
+
+<p><b>Name of the Deceased:</b> ${val("dead_name")}</p>
+<p><b>Father/Husband's Name:</b> ${val("relation_name")}</p>
+<p><b>Last Residential Address:</b> ${val("dead_address")}</p>
+
+<br>
+
+<h4>List of Legal Heirs:</h4>
+
+<table border="1" width="100%" cellspacing="0" cellpadding="6">
+<tr>
+<th>Sl. No</th>
+<th>Name of Legal Heir</th>
+<th>Age</th>
+<th>Relationship</th>
+<th>Address</th>
+<th>EPIC</th>
+</tr>
+
+${heirs.map((h,i)=>`
+<tr>
+<td>${i+1}</td>
+<td>${h.name}</td>
+<td>${h.age}</td>
+<td>${h.rel}</td>
+<td>${h.addr}</td>
+<td>${h.epic || "N/A"}</td>
+</tr>
+`).join("")}
+
+</table>
+
+<br>
+
+<p><b>Purpose of Certificate:</b> Official Purpose</p>
+
+<br>
+
+<h4>List of Documents Attached:</h4>
+
+<p>
+☐ Death Certificate (if available)<br>
+☐ Identity Proof (Aadhaar/PAN/Voter ID)<br>
+☐ Address Proof<br>
+☐ Self-Affidavit / Undertaking
+</p>
+
+<br>
+
+<h4>Declaration</h4>
+
+<p style="text-align:justify;">
+I hereby declare that the information above is true to the best of my knowledge and belief.
+</p>
+
+<br><br>
+
+<p><b>Date:</b> ${formattedDate}</p>
+<p><b>Place:</b> Deor Gram Panchayat</p>
+
+<br><br><br>
+
+<div style="display:flex; justify-content:space-between;">
+  <div>
+    ___________________________<br>
+    Signature of Applicant
+  </div>
+</div>
+
+<br><br>
+
+<h4>Witness:</h4>
+
+1. ___________________________<br><br>
+2. ___________________________<br><br>
+3. ___________________________<br><br>
+4. ___________________________<br><br>
+5. ___________________________
+
+<br><br><br>
+
+<div style="display:flex; justify-content:space-between;">
+  <div>
+    ___________________________<br>
+    Signature of Member
+  </div>
+
+  <div style="text-align:right;">
+    ___________________________<br>
+    Signature of Pradhan
+  </div>
+</div>
+
+</div>
+`;
+
 
   // 🔥 SAVE FULL DATA
   await addDoc(collection(db, "applications"), {
