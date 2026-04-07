@@ -4,12 +4,7 @@
   <title>Legal Heir Application</title>
 
   <style>
-    body {
-      font-family: Arial;
-      padding: 20px;
-      background: #f4f4f4;
-    }
-
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
     h2 { text-align: center; }
 
     .box {
@@ -24,25 +19,18 @@
       width: 100%;
       padding: 8px;
       margin: 5px 0 10px;
-      border: 1px solid #ccc;
       border-radius: 5px;
+      border: 1px solid #ccc;
     }
 
-    input.error, select.error {
-      border: 2px solid red;
-    }
+    input.error { border: 2px solid red; }
 
     label.required::after {
       content: " *";
       color: red;
     }
 
-    button {
-      padding: 6px 10px;
-      margin: 3px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+    button { padding: 6px 10px; margin: 3px; cursor: pointer; }
 
     #output {
       background: #fff;
@@ -56,8 +44,6 @@
 
 <h2>Legal Heir Application</h2>
 
-<button onclick="goHome()">⬅ Back</button>
-<button onclick="resetForm()">🔄 Reset</button>
 <button onclick="generate()">✅ Submit</button>
 <button onclick="downloadPDF()" id="pdfBtn" style="display:none;">📄 PDF</button>
 
@@ -75,7 +61,6 @@
     <option value="">Select</option>
     <option>Male</option>
     <option>Female</option>
-    <option>Other</option>
   </select>
 
   <label class="required">Address</label>
@@ -97,6 +82,10 @@
 
 <div class="box">
   <h3>Legal Heirs</h3>
+
+  <label class="required">Number of Legal Heirs (Max 20)</label>
+  <input type="number" id="heirCountInput" min="1" max="20">
+
   <div id="heirs"></div>
 </div>
 
@@ -104,175 +93,116 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyD7...",
-  authDomain: "deor-gp.firebaseapp.com",
-  projectId: "deor-gp"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+<script>
 
 let heirCount = 0;
-const MAX_HEIRS = 20;
+const MAX = 20;
 
-window.goHome = () => window.location.href = "index.html";
-window.resetForm = () => location.reload();
+// 🔢 AUTO GENERATE
+document.getElementById("heirCountInput").addEventListener("input", function(){
+
+  let count = parseInt(this.value) || 0;
+
+  if(count > MAX){
+    alert("Max 20 allowed");
+    this.value = 20;
+    count = 20;
+  }
+
+  heirCount = count;
+
+  let container = document.getElementById("heirs");
+  container.innerHTML = "";
+
+  for(let i=1;i<=count;i++){
+
+    let div = document.createElement("div");
+    div.className = "box";
+
+    div.innerHTML = `
+      <b>Heir ${i}</b>
+
+      <label class="required">Name</label>
+      <input id="name${i}">
+
+      <label class="required">Relation</label>
+      <input id="rel${i}">
+
+      <label class="required">Address</label>
+      <input id="addr${i}">
+
+      <label class="required">Age</label>
+      <input id="age${i}">
+
+      <label>EPIC (Optional)</label>
+      <input id="epic${i}">
+    `;
+
+    container.appendChild(div);
+  }
+
+});
 
 // validation
-function checkField(id){
-  let el = document.getElementById(id);
-  if(!el) return true;
-
-  if(el.value.trim() === ""){
+function check(id){
+  let el=document.getElementById(id);
+  if(el.value.trim()===""){
     el.classList.add("error");
     return false;
-  } else {
-    el.classList.remove("error");
-    return true;
   }
+  el.classList.remove("error");
+  return true;
 }
-
-function attachLiveValidation(id){
-  let el = document.getElementById(id);
-  if(el){
-    el.addEventListener("input", () => checkField(id));
-  }
-}
-
-// ADD HEIR
-window.addHeir = function(){
-
-  if(heirCount >= MAX_HEIRS){
-    alert("❌ Maximum 20 heirs allowed");
-    return;
-  }
-
-  heirCount++;
-
-  let div = document.createElement("div");
-  div.className = "box";
-  div.id = "heir" + heirCount;
-
-  div.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <b>Heir ${heirCount}</b>
-
-      <div>
-        <button type="button" onclick="addHeir()" style="background:green;color:white;border:none;border-radius:5px;">➕ Add</button>
-        <button type="button" onclick="removeHeir(${heirCount})" style="background:red;color:white;border:none;border-radius:5px;">❌ Remove</button>
-      </div>
-    </div>
-
-    <label class="required">Name</label>
-    <input id="name${heirCount}">
-
-    <label class="required">Relation</label>
-    <input id="rel${heirCount}">
-
-    <label class="required">Address</label>
-    <input id="addr${heirCount}">
-
-    <label class="required">Age</label>
-    <input id="age${heirCount}">
-
-    <label>EPIC (Optional)</label>
-    <input id="epic${heirCount}">
-  `;
-
-  document.getElementById("heirs").appendChild(div);
-
-  attachLiveValidation("name"+heirCount);
-  attachLiveValidation("rel"+heirCount);
-  attachLiveValidation("addr"+heirCount);
-  attachLiveValidation("age"+heirCount);
-};
-
-// REMOVE
-window.removeHeir = function(id){
-  let el = document.getElementById("heir"+id);
-  if(el){
-    el.remove();
-    heirCount--;
-  }
-};
 
 function val(id){
-  let el = document.getElementById(id);
+  let el=document.getElementById(id);
   return el ? el.value.trim() || "-" : "-";
 }
 
-function validateForm(){
+// submit
+function generate(){
 
-  let valid = true;
-
-  let fields = [
-    "app_name","father_name","gender","app_address",
-    "dead_name","dead_parent","dead_address"
-  ];
-
-  fields.forEach(id=>{
-    if(!checkField(id)) valid = false;
-  });
-
-  for(let i=1;i<=heirCount;i++){
-    if(document.getElementById("name"+i)){
-      if(!checkField("name"+i)) valid = false;
-      if(!checkField("rel"+i)) valid = false;
-      if(!checkField("addr"+i)) valid = false;
-      if(!checkField("age"+i)) valid = false;
-    }
-  }
-
-  return valid;
-}
-
-// SUBMIT
-window.generate = async function(){
-
-  if(heirCount === 0){
-    alert("Add at least 1 heir");
+  if(heirCount===0){
+    alert("Enter number of heirs");
     return;
   }
 
-  if(!validateForm()){
-    alert("❌ Please fill all required fields");
+  let valid=true;
+
+  ["app_name","father_name","gender","app_address",
+   "dead_name","dead_parent","dead_address"]
+  .forEach(id=>{ if(!check(id)) valid=false; });
+
+  for(let i=1;i<=heirCount;i++){
+    if(!check("name"+i)) valid=false;
+    if(!check("rel"+i)) valid=false;
+    if(!check("addr"+i)) valid=false;
+    if(!check("age"+i)) valid=false;
+  }
+
+  if(!valid){
+    alert("Fill all required fields");
     return;
   }
 
-  let rows = "";
-  let serial = 1;
+  let rows="";
+  let s=1;
 
   for(let i=1;i<=heirCount;i++){
-    if(document.getElementById("name"+i)){
-      rows += `
-      <tr>
-        <td>${serial++}</td>
-        <td>${val("name"+i)}</td>
-        <td>${val("age"+i)}</td>
-        <td>${val("rel"+i)}</td>
-        <td>${val("addr"+i)}</td>
-        <td>${val("epic"+i)}</td>
-      </tr>`;
-    }
+    rows+=`
+    <tr>
+      <td>${s++}</td>
+      <td>${val("name"+i)}</td>
+      <td>${val("age"+i)}</td>
+      <td>${val("rel"+i)}</td>
+      <td>${val("addr"+i)}</td>
+      <td>${val("epic"+i)}</td>
+    </tr>`;
   }
 
-  let now = new Date();
-  let today = now.toLocaleDateString("en-GB");
-  let ackID = `${now.getFullYear()}-DGP-LHA-${Date.now().toString().slice(-5)}`;
-
-  await addDoc(collection(db, "applications"), {
-    ackID,
-    applicant: val("app_name"),
-    fatherName: val("father_name"),
-    createdAt: serverTimestamp()
-  });
+  let d=new Date();
+  let today=d.toLocaleDateString("en-GB");
+  let ackID=`${d.getFullYear()}-DGP-LHA-${Date.now().toString().slice(-5)}`;
 
   document.getElementById("output").innerHTML = `
 
