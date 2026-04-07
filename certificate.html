@@ -11,121 +11,7 @@
     body {
       font-family: Arial;
       margin: 0;
-      background: #f4f4f4;<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-// 🔥 CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
-  authDomain: "deor-gp.firebaseapp.com",
-  projectId: "deor-gp",
-  appId: "1:119940582286:web:f39346b6cc185809a232df"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// VALUE
-function val(id){
-  return document.getElementById(id)?.value || "-";
-}
-
-// CREATE HEIRS
-window.createHeirs = function(){
-  let c = parseInt(document.getElementById("count").value) || 0;
-  let h = document.getElementById("heirs");
-  h.innerHTML = "";
-
-  for(let i=1;i<=c;i++){
-    h.innerHTML += `
-      <div class="box">
-        <h4>Heir ${i}</h4>
-        <input id="name${i}" placeholder="Name">
-        <input id="age${i}" placeholder="Age">
-        <input id="rel${i}" placeholder="Relation">
-        <input id="addr${i}" placeholder="Address">
-        <input id="epic${i}" placeholder="EPIC">
-      </div>
-    `;
-  }
-}
-
-// 🔥 GENERATE + SAVE
-window.generate = async function(){
-
-  let c = parseInt(document.getElementById("count").value);
-
-  if(!c || c <= 0){
-    alert("Please enter number of heirs");
-    return;
-  }
-
-  let heirsData = [];
-
-  for(let i=1;i<=c;i++){
-    heirsData.push({
-      name: val("name"+i),
-      age: val("age"+i),
-      relation: val("rel"+i),
-      address: val("addr"+i),
-      epic: val("epic"+i)
-    });
-  }
-
-  let now = new Date();
-  let year = now.getFullYear();
-  let ackID = `${year}-DGP-LHA-${Date.now().toString().slice(-6)}`;
-
-  try{
-
-    await addDoc(collection(db, "applications"), {
-      ackID: ackID,
-      applicant: val("app_name"),
-      fatherName: val("father_name"),
-      address: val("app_address"),
-      deceased: val("dead_name"),
-      relation: val("relation_name"),
-      deadAddress: val("dead_address"),
-      heirs: heirsData,
-      status: "pending",
-      createdAt: now
-    });
-
-    // OUTPUT
-    document.getElementById("output").innerHTML = `
-      <h2 style="text-align:center;">Application Submitted</h2>
-      <p style="color:green;"><b>ID:</b> ${ackID}</p>
-    `;
-
-    document.getElementById("printBtn").style.display = "block";
-
-    alert("✅ Application Submitted Successfully!");
-
-  }catch(err){
-    console.error(err);
-    alert("❌ Error: " + err.message);
-  }
-
-}
-
-// PRINT
-window.printPage = function(){
-  window.print();
-}
-
-// HOME
-window.goHome = function(){
-  window.location.href = "index.html";
-}
-
-// RESET
-window.resetForm = function(){
-  location.reload();
-}
-
-</script>
+      background: #f4f4f4;
     }
 
     @page {
@@ -220,7 +106,7 @@ window.resetForm = function(){
 
 <h3>Deceased</h3>
 <input id="dead_name" placeholder="Deceased Name">
-<input id="relation_name" placeholder="Father/Husband Name">
+<input id="relation_name" placeholder="Relation">
 <input id="dead_address" placeholder="Last Address">
 
 <h3>No. of Legal Heirs</h3>
@@ -242,9 +128,6 @@ const firebaseConfig = {
   authDomain: "deor-gp.firebaseapp.com",
   databaseURL: "https://deor-gp-default-rtdb.firebaseio.com/",
   projectId: "deor-gp",
-  storageBucket: "deor-gp.firebasestorage.app",
-  messagingSenderId: "119940582286",
-  appId: "1:119940582286:web:f39346b6cc185809a232df"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -288,12 +171,10 @@ function val(id){
 // GENERATE + SAVE
 function generate(){
 
-  console.log("Generate clicked");
-
   let c = parseInt(document.getElementById("count").value) || 0;
 
   if(c <= 0){
-    alert("Please enter number of heirs");
+    alert("Enter number of heirs");
     return;
   }
 
@@ -314,59 +195,136 @@ function generate(){
 
     heirsData.push({
       name: val("name"+i),
-      age: val("age"+i),
-      relation: val("rel"+i),
-      address: val("addr"+i),
-      epic: val("epic"+i)
+      age: val("age"+i)
     });
   }
 
   let now = new Date();
-  let year = now.getFullYear();
-  let serial = now.getTime().toString().slice(-6);
-  let ackID = `${year}-DGP-LHA-${serial}`;
+  let ackID = "DGP-" + now.getTime();
 
   db.ref("applications/" + ackID).set({
     ackID,
-    applicantName: val("app_name"),
-    fatherName: val("father_name"),
-    applicantAddress: val("app_address"),
-    deceasedName: val("dead_name"),
-    deceasedRelation: val("relation_name"),
-    deceasedAddress: val("dead_address"),
+    applicant: val("app_name"),
     heirs: heirsData,
-    status: "Pending",
     createdAt: now.toISOString()
   })
   .then(()=>{
 
-    console.log("Saved to Firebase");
-
     document.getElementById("output").innerHTML = `
-    <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
-    <p style="color:green;"><b>Acknowledgement ID:</b> ${ackID}</p>
 
-    <table border="1" width="100%" cellspacing="0" cellpadding="5">
-      <tr>
-        <th>Sl</th>
-        <th>Name</th>
-        <th>Age</th>
-        <th>Relation</th>
-        <th>Address</th>
-        <th>EPIC</th>
-      </tr>
-      ${rows}
-    </table>
-    `;
+<h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
+
+<br>
+
+<p><b>To</b><br>
+The Pradhan<br>
+Deor Gram Panchayat<br>
+Kumarganj Development Block<br>
+Dakshin Dinajpur
+</p>
+
+<br>
+
+<p style="text-align:center;"><b>Subject: Application for Issuance of Legal Heir Certificate</b></p>
+
+<br>
+
+<p>Respected Sir/Madam,</p>
+
+<p>
+I, <b>${val("app_name")}</b>, son/daughter of <b>${val("father_name")}</b>, resident of <b>${val("app_address")}</b>, do hereby state that <b>Late ${val("dead_name")}</b>, <b>${val("relation_name")}</b>, was a permanent resident of <b>${val("dead_address")}</b>.
+</p>
+
+<p>The following are the legal heirs:</p>
+
+<br>
+
+<table border="1" width="100%" cellpadding="5">
+<tr>
+<th>Sl</th>
+<th>Name</th>
+<th>Age</th>
+<th>Relation</th>
+<th>Address</th>
+<th>EPIC</th>
+</tr>
+${rows}
+</table>
+
+<br>
+
+<p>I request you to kindly issue the Legal Heir Certificate.</p>
+
+<br><br>
+
+<p>Date: ${new Date().toLocaleDateString()}</p>
+<p>Place: Deor Gram Panchayat</p>
+
+<br><br><br>
+
+<div style="text-align:right;">
+_________________________<br>
+Signature of Applicant<br>
+${val("app_name")}
+</div>
+
+<br><br><br>
+
+<table width="100%">
+<tr>
+<td>
+
+_________________________<br>
+Witness 1<br><br>
+
+_________________________<br>
+Witness 2<br><br>
+
+_________________________<br>
+Witness 3
+
+</td>
+
+<td align="right">
+
+_________________________<br>
+Witness 4<br><br>
+
+_________________________<br>
+Witness 5<br><br>
+
+_________________________<br>
+Witness 6
+
+</td>
+</tr>
+</table>
+
+<br><br>
+
+<table width="100%">
+<tr>
+<td>
+_________________________<br>
+Signature of Pradhan
+</td>
+
+<td align="right">
+_________________________<br>
+Signature of Member
+</td>
+</tr>
+</table>
+
+`;
 
     document.getElementById("printBtn").style.display = "block";
 
-    alert("✅ Application Submitted Successfully!");
+    alert("✅ Submitted Successfully");
 
   })
   .catch(err=>{
-    console.error(err);
-    alert("❌ Error: " + err.message);
+    alert("Error: " + err.message);
   });
 
 }
