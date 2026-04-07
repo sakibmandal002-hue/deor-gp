@@ -8,7 +8,301 @@
       font-family: Arial;
       padding: 20px;
       background: #f4f4f4;
+    }<!DOCTYPE html>
+<html>
+<head>
+  <title>Legal Heir Application</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      padding: 20px;
     }
+
+    h2 {
+      text-align: center;
+    }
+
+    .box {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 10px;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    #output {
+      background: #fff;
+      padding: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Legal Heir Application</h2>
+
+<div class="box">
+  <h3>Applicant Details</h3>
+  <input id="app_name" placeholder="Applicant Name">
+  <input id="father_name" placeholder="Father Name">
+  <select id="gender">
+    <option value="">Select Gender</option>
+    <option>Male</option>
+    <option>Female</option>
+    <option>Other</option>
+  </select>
+  <input id="app_address" placeholder="Address">
+</div>
+
+<div class="box">
+  <h3>Deceased Details</h3>
+  <input id="dead_name" placeholder="Deceased Name">
+  <input id="dead_parent" placeholder="Father / Husband / Mother Name">
+  <input id="dead_address" placeholder="Address">
+</div>
+
+<div class="box">
+  <h3>Legal Heir Details</h3>
+  <select id="count" onchange="createHeirs()">
+    <option value="">Select Legal Heir Count</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+    <option value="9">9</option>
+    <option value="10">10</option>
+  </select>
+  <div id="heirs"></div>
+</div>
+
+<button onclick="generate()">Generate</button>
+<button onclick="location.reload()">Reset</button>
+
+<div id="output"></div>
+<button id="printBtn" style="display:none;" onclick="window.print()">Print</button>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
+  authDomain: "deor-gp.firebaseapp.com",
+  projectId: "deor-gp",
+  storageBucket: "deor-gp.firebasestorage.app",
+  messagingSenderId: "119940582286",
+  appId: "1:119940582286:web:f39346b6cc185809a232df"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.createHeirs = function(){
+  let c = parseInt(document.getElementById("count").value) || 0;
+  let h = document.getElementById("heirs");
+  h.innerHTML = "";
+
+  for(let i=1;i<=c;i++){
+    h.innerHTML += `
+      <div class="box">
+        <h4>Heir ${i}</h4>
+        <input id="name${i}" placeholder="Name">
+        <input id="rel${i}" placeholder="Relation">
+        <input id="addr${i}" placeholder="Address">
+        <input id="age${i}" placeholder="Age">
+        <input id="epic${i}" placeholder="EPIC (Optional)">
+      </div>
+    `;
+  }
+}
+
+function val(id){
+  let el = document.getElementById(id);
+  return el && el.value.trim() !== "" ? el.value.trim() : "-";
+}
+
+window.generate = async function(){
+
+  let c = parseInt(document.getElementById("count").value) || 0;
+
+  if(c <= 0){
+    alert("Select heir count");
+    return;
+  }
+
+  if(val("app_name") === "-" || val("father_name") === "-"){
+    alert("Fill required fields");
+    return;
+  }
+
+  let rows = "";
+  let heirsData = [];
+
+  for(let i=1;i<=c;i++){
+
+    let name = val("name"+i);
+    let rel = val("rel"+i);
+    let addr = val("addr"+i);
+    let age = val("age"+i);
+    let epic = val("epic"+i);
+
+    rows += `
+      <tr>
+        <td>${i}</td>
+        <td>${name}</td>
+        <td>${age}</td>
+        <td>${rel}</td>
+        <td>${addr}</td>
+        <td>${epic}</td>
+      </tr>
+    `;
+
+    heirsData.push({name, relation: rel, address: addr, age, epic});
+  }
+
+  let now = new Date();
+  let ackID = `${now.getFullYear()}-DGP-LHA-${Date.now().toString().slice(-5)}`;
+  let today = now.toLocaleDateString();
+
+  await addDoc(collection(db, "applications"), {
+    ackID,
+    date: today,
+    applicant: val("app_name"),
+    fatherName: val("father_name"),
+    gender: val("gender"),
+    address: val("app_address"),
+    deceased: val("dead_name"),
+    deadParent: val("dead_parent"),
+    deadAddress: val("dead_address"),
+    heirs: heirsData,
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  document.getElementById("output").innerHTML = `
+
+<div style="display:flex; justify-content:space-between; font-weight:bold;">
+  <div>Application No: ${ackID}</div>
+  <div>Date: ${today}</div>
+</div>
+
+<h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
+
+<p><b>To</b><br>
+The Pradhan<br>
+Deor Gram Panchayat</p>
+
+<p style="text-align:center;"><b>Subject: Application for Issuance of Legal Heir Certificate</b></p>
+
+<p>
+I, <b>${val("app_name")}</b>, son/daughter of <b>${val("father_name")}</b>,
+resident of <b>${val("app_address")}</b>, do hereby state that 
+<b>Late ${val("dead_name")}</b>, 
+was resident of <b>${val("dead_address")}</b>.
+</p>
+
+<table border="1" width="100%" cellpadding="5">
+<tr>
+<th>Sl</th>
+<th>Name</th>
+<th>Age</th>
+<th>Relation</th>
+<th>Address</th>
+<th>EPIC</th>
+</tr>
+${rows}
+</table>
+
+<br><br>
+
+<p>Place: Deor Gram Panchayat</p>
+
+<br><br>
+
+<p style="text-align:justify;">
+<b>Declaration:</b><br>
+I hereby declare that the information provided above is true and correct to the best of my knowledge and belief. 
+If any information is found to be incorrect or false, I shall be liable for legal action as per law. 
+I therefore request the competent authority to kindly verify my application at the earliest and issue the Legal Heir Certificate in my favour.
+</p>
+
+<br><br>
+
+<div style="text-align:right;">
+_________________________<br>
+Signature of Applicant<br>
+${val("app_name")}
+</div>
+
+<br><br><br>
+
+<div style="border:1px solid #000; padding:15px;">
+<b>Signature of Witness</b>
+
+<table width="100%" style="margin-top:10px;">
+<tr>
+<td>
+1. _________________________<br><br>
+2. _________________________<br><br>
+3. _________________________
+</td>
+
+<td align="right">
+4. _________________________<br><br>
+5. _________________________<br><br>
+6. _________________________
+</td>
+</tr>
+</table>
+</div>
+
+<br><br><br>
+
+<table width="100%">
+<tr>
+<td>
+_________________________<br>
+Signature of Member
+</td>
+
+<td align="right">
+_________________________<br>
+Signature of Pradhan
+</td>
+</tr>
+</table>
+`;
+
+  document.getElementById("printBtn").style.display = "block";
+
+  alert("✅ Submitted Successfully");
+}
+
+</script>
+
+</body>
+</html>
 
     input {
       display: block;
