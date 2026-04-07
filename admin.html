@@ -1,3 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      background: #f4f4f4;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: #ecf0f1;
+    }
+
+    input {
+      padding: 8px;
+      width: 200px;
+    }
+
+    button {
+      padding: 6px 10px;
+      margin: 2px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #34495e;
+      color: white;
+    }
+
+    h2 {
+      margin-left: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Admin Dashboard</h1>
+</header>
+
+<div class="topbar">
+  <div>
+    <input type="text" id="search" placeholder="Search by ID">
+    <button onclick="searchData()">Search</button>
+  </div>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<h2>🟡 Pending Applications</h2>
+<table id="pendingTable"></table>
+
+<h2>🟢 Approved Applications</h2>
+<table id="approvedTable"></table>
+
+<h2>🔴 Rejected Applications</h2>
+<table id="rejectedTable"></table>
+
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -17,22 +102,57 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+let allData = [];
+
+// AUTH CHECK
 onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    alert("Login Required");
+  if (user) {
+    loadData();
+  } else {
     window.location.href = "login.html";
   }
 });
 
-let allData = [];
-
+// LOAD DATA
 async function loadData(){
 
   const snapshot = await getDocs(collection(db, "applications"));
 
-  let table = document.getElementById("table");
+  let pendingTable = document.getElementById("pendingTable");
+  let approvedTable = document.getElementById("approvedTable");
+  let rejectedTable = document.getElementById("rejectedTable");
 
-  table.innerHTML = `
+  pendingTable.innerHTML = header();
+  approvedTable.innerHTML = header();
+  rejectedTable.innerHTML = header();
+
+  allData = [];
+
+  snapshot.forEach(docSnap=>{
+    let d = docSnap.data();
+    let id = docSnap.id;
+
+    let status = d.status || "pending";
+
+    let row = rowTemplate(d, id, status);
+
+    if(status === "approved"){
+      approvedTable.innerHTML += row;
+    }
+    else if(status === "rejected"){
+      rejectedTable.innerHTML += row;
+    }
+    else{
+      pendingTable.innerHTML += row;
+    }
+
+    allData.push({...d, docId:id});
+  });
+}
+
+// HEADER
+function header(){
+  return `
     <tr>
       <th>ID</th>
       <th>Applicant</th>
@@ -41,43 +161,35 @@ async function loadData(){
       <th>Action</th>
     </tr>
   `;
+}
 
-  allData = [];
+// ROW
+function rowTemplate(d, id, status){
 
-  snapshot.forEach(docSnap=>{
-    let d = docSnap.data();
-    let id = docSnap.id;
+  let rowColor = "";
+  if(status === "approved") rowColor = "style='background:#ccffcc'";
+  if(status === "rejected") rowColor = "style='background:#ffcccc'";
 
-    allData.push({...d, docId:id});
+  let disabled = status !== "pending" ? "disabled" : "";
 
-    let status = d.status || "pending";
-
-    let rowColor = "";
-    if(status === "rejected") rowColor = "style='background:#ffcccc'";
-    if(status === "approved") rowColor = "style='background:#ccffcc'";
-
-    let disabled = status === "approved" ? "disabled" : "";
-
-    table.innerHTML += `
-      <tr ${rowColor}>
-        <td>${d.ackID || "-"}</td>
-        <td>${d.applicant || "-"}</td>
-        <td>${
-          d.createdAt?.seconds
-            ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
-            : "-"
-        }</td>
-        <td>${status}</td>
-        <td>
-          <button onclick='viewCert(${JSON.stringify(d)})'>View</button>
-          <button ${disabled} onclick="approveApp('${id}')">Approve</button>
-          <button ${disabled} onclick="rejectApp('${id}')">Reject</button>
-          <button ${disabled} onclick="deleteApp('${id}')">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
-
+  return `
+    <tr ${rowColor}>
+      <td>${d.ackID || "-"}</td>
+      <td>${d.applicant || "-"}</td>
+      <td>${
+        d.createdAt?.seconds
+          ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
+          : "-"
+      }</td>
+      <td>${status}</td>
+      <td>
+        <button onclick="viewCert('${id}')">View</button>
+        <button ${disabled} onclick="approveApp('${id}')">Approve</button>
+        <button ${disabled} onclick="rejectApp('${id}')">Reject</button>
+        <button ${disabled} onclick="deleteApp('${id}')">Delete</button>
+      </td>
+    </tr>
+  `;
 }
 
 // APPROVE
@@ -108,68 +220,35 @@ window.deleteApp = async function(id){
   }
 }
 
-// VIEW
-window.viewCert = function(data){
+// VIEW SAFE
+window.viewCert = function(id){
+  let data = allData.find(d => d.docId === id);
   localStorage.setItem("certData", JSON.stringify(data));
   window.open("view.html", "_blank");
 }
 
-// SEARCH same
+// SEARCH
 window.searchData = function(){
-
   let val = document.getElementById("search").value.toLowerCase();
-  let table = document.getElementById("table");
 
-  table.innerHTML = `
-    <tr>
-      <th>ID</th>
-      <th>Applicant</th>
-      <th>Date</th>
-      <th>Status</th>
-      <th>Action</th>
-    </tr>
-  `;
+  let pendingTable = document.getElementById("pendingTable");
+  pendingTable.innerHTML = header();
 
   allData
-  .filter(d => d.ackID?.toLowerCase().includes(val))
-  .forEach(d=>{
-
-    let status = d.status || "pending";
-
-    let rowColor = "";
-    if(status === "rejected") rowColor = "style='background:#ffcccc'";
-    if(status === "approved") rowColor = "style='background:#ccffcc'";
-
-    let disabled = status === "approved" ? "disabled" : "";
-
-    table.innerHTML += `
-      <tr ${rowColor}>
-        <td>${d.ackID}</td>
-        <td>${d.applicant}</td>
-        <td>${
-          d.createdAt?.seconds
-            ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
-            : "-"
-        }</td>
-        <td>${status}</td>
-        <td>
-          <button onclick='viewCert(${JSON.stringify(d)})'>View</button>
-          <button ${disabled} onclick="approveApp('${d.docId}')">Approve</button>
-          <button ${disabled} onclick="rejectApp('${d.docId}')">Reject</button>
-          <button ${disabled} onclick="deleteApp('${d.docId}')">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
-
+    .filter(d => d.ackID?.toLowerCase().includes(val))
+    .forEach(d=>{
+      pendingTable.innerHTML += rowTemplate(d, d.docId, d.status || "pending");
+    });
 }
 
+// LOGOUT
 window.logout = function(){
   signOut(auth).then(()=>{
     window.location.href = "login.html";
   });
 }
 
-loadData();
-
 </script>
+
+</body>
+</html>
