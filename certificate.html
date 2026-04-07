@@ -38,6 +38,11 @@
       margin-top: 20px;
     }
   </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 </head>
 
 <body>
@@ -45,6 +50,8 @@
 <h2>Legal Heir Application</h2>
 
 <button onclick="generate()">✅ Submit</button>
+<button onclick="goBack()">⬅ Back</button>
+<button onclick="resetForm()">🔄 Reset</button>
 <button onclick="downloadPDF()" id="pdfBtn" style="display:none;">📄 PDF</button>
 
 <div class="box">
@@ -94,6 +101,26 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
+
+// SAFE FIREBASE INIT
+let db = null;
+
+try {
+  firebase.initializeApp({
+    apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
+    authDomain: "deor-gp.firebaseapp.com",
+    databaseURL: "https://deor-gp-default-rtdb.firebaseio.com",
+    projectId: "deor-gp",
+    storageBucket: "deor-gp.firebasestorage.app",
+    messagingSenderId: "119940582286",
+    appId: "1:119940582286:web:f39346b6cc185809a232df"
+  });
+
+  db = firebase.database();
+
+} catch (e) {
+  console.log("Firebase error:", e);
+}
 
 let heirCount = 0;
 const MAX = 20;
@@ -159,7 +186,6 @@ function val(id){
   return el ? el.value.trim() || "-" : "-";
 }
 
-// SAFE validation attach
 function attachLiveValidation(id){
   let el = document.getElementById(id);
   if(!el) return;
@@ -171,8 +197,23 @@ function attachLiveValidation(id){
   });
 }
 
-// dummy রাখা হয়েছে (remove করা হয়নি)
 function addHeir(){}
+
+// BACK
+function goBack(){
+  document.getElementById("output").innerHTML = "";
+  document.getElementById("pdfBtn").style.display = "none";
+}
+
+// RESET
+function resetForm(){
+  document.querySelectorAll("input").forEach(el => el.value = "");
+  document.querySelectorAll("select").forEach(el => el.value = "");
+  document.getElementById("heirs").innerHTML = "";
+  document.getElementById("output").innerHTML = "";
+  document.getElementById("pdfBtn").style.display = "none";
+  heirCount = 0;
+}
 
 // submit
 function generate(){
@@ -201,12 +242,11 @@ function generate(){
   }
 
   let rows="";
-  let s=1;
 
   for(let i=1;i<=heirCount;i++){
     rows+=`
     <tr>
-      <td>${s++}</td>
+      <td>${i}</td>
       <td>${val("name"+i)}</td>
       <td>${val("age"+i)}</td>
       <td>${val("rel"+i)}</td>
@@ -219,14 +259,11 @@ function generate(){
   let today=d.toLocaleDateString("en-GB");
   let ackID=`${d.getFullYear()}-DGP-LHA-${Date.now().toString().slice(-5)}`;
 
-  // gender dynamic (output text unchanged style)
   let genderText = "son/daughter";
   if(val("gender") === "Male") genderText = "son of";
   else if(val("gender") === "Female") genderText = "daughter of";
 
   document.getElementById("output").innerHTML = `
-
-<button onclick="goBack()" style="margin-bottom:10px;">⬅ Back</button>
 
 <h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
 
@@ -322,16 +359,41 @@ Signature of Pradhan
 
   document.getElementById("pdfBtn").style.display = "inline-block";
 
+  if(db){
+    let data = {
+      ackID: ackID,
+      date: today,
+      applicant: {
+        name: val("app_name"),
+        father: val("father_name"),
+        gender: val("gender"),
+        address: val("app_address")
+      },
+      deceased: {
+        name: val("dead_name"),
+        parent: val("dead_parent"),
+        address: val("dead_address")
+      },
+      heirs: []
+    };
+
+    for(let i=1;i<=heirCount;i++){
+      data.heirs.push({
+        name: val("name"+i),
+        age: val("age"+i),
+        relation: val("rel"+i),
+        address: val("addr"+i),
+        epic: val("epic"+i)
+      });
+    }
+
+    db.ref("applications").push(data);
+  }
+
   alert("✅ Submitted Successfully");
 }
 
-// back
-function goBack(){
-  document.getElementById("output").innerHTML = "";
-  document.getElementById("pdfBtn").style.display = "none";
-}
-
-// PDF FIX
+// PDF
 window.downloadPDF = function(){
   const element = document.getElementById("output");
 
@@ -343,7 +405,7 @@ window.downloadPDF = function(){
   }).from(element).save();
 }
 
-// SAFE INIT (NO BLANK ISSUE)
+// INIT
 window.onload = function(){
   ["app_name","father_name","gender","app_address",
    "dead_name","dead_parent","dead_address"]
