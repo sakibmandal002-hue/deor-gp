@@ -67,20 +67,6 @@
       box-sizing: border-box;
     }
 
-    .two-col {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 40px;
-    }
-
-    .col {
-      width: 45%;
-    }
-
-    .sign {
-      margin-top: 40px;
-    }
-
     @media print {
       .sidebar, .no-print {
         display: none;
@@ -120,7 +106,7 @@
 <input id="dead_address" placeholder="Last Address">
 
 <h3>No. of Legal Heirs</h3>
-<input type="number" id="count" oninput="createHeirs()">
+<input type="number" id="count" min="1" oninput="createHeirs()">
 
 <div id="heirs"></div>
 
@@ -132,14 +118,17 @@
 
 <script>
 
+// HOME
 function goHome(){
   window.location.href = "index.html";
 }
 
+// RESET
 function resetForm(){
   location.reload();
 }
 
+// CREATE HEIRS
 function createHeirs(){
   let c = document.getElementById("count").value;
   let h = document.getElementById("heirs");
@@ -153,33 +142,19 @@ function createHeirs(){
         <input id="age${i}" placeholder="Age">
         <input id="rel${i}" placeholder="Relation">
         <input id="addr${i}" placeholder="Address">
+        <input id="epic${i}" placeholder="EPIC">
       </div>
     `;
   }
 }
 
+// VALUE
 function val(id){
   return document.getElementById(id)?.value || "-";
 }
 
+// GENERATE
 function generate(){
-
-  let c = document.getElementById("count").value;
-  let rows = "";
-
-  for(let i=1;i<=c;i++){
-    rows += `
-      <tr>
-        <td>${i}</td>
-        <td>${val("name"+i)}</td>
-        <td>${val("age"+i)}</td>
-        <td>${val("rel"+i)}</td>
-        <td>${val("addr"+i)}</td>
-      </tr>
-    `;
-  }
-
-  function generate(){
 
   let c = document.getElementById("count").value;
   let rows = "";
@@ -248,7 +223,7 @@ function generate(){
   ☐ Death Certificate<br>
   ☐ Identity Proof (Aadhaar/PAN/Voter ID)<br>
   ☐ Address Proof<br>
-  ☐ Self-Affidavit / Undertaking
+  ☐ Self-Declaration / Undertaking
   </p>
 
   <br>
@@ -275,13 +250,14 @@ function generate(){
   <div style="display:flex; justify-content:space-between;">
     
     <div>
-     <p style="text-align:left;">Signature of Witness</p>
+      <b>Witness</b><br><br>
       1. ___________________<br><br>
       2. ___________________<br><br>
       3. ___________________
     </div>
 
     <div>
+      <br><br>
       4. ___________________<br><br>
       5. ___________________<br><br>
       6. ___________________
@@ -291,21 +267,17 @@ function generate(){
 
   <br><br><br>
 
-    <!-- SIGNATURE -->
-    <div class="two-col">
-      <div class="col">
-        Member Signature
-      </div>
+  <div style="display:flex; justify-content:space-between;">
+    <div>Member Signature</div>
+    <div>Prodhan Signature</div>
+  </div>
 
-      <div class="col" style="text-align:right;">
-        Prodhan Signature
-      </div>
-    </div>
   `;
 
   document.getElementById("printBtn").style.display = "block";
 }
 
+// PRINT
 function printPage(){
   window.print();
 }
