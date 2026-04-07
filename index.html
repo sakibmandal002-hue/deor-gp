@@ -1,260 +1,97 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Legal Heir Application</title>
+  <title>Deor Gram Panchayat</title>
 
   <style>
     body {
       font-family: Arial;
       margin: 0;
-      padding: 0;
       background: #f4f4f4;
+      text-align: center;
     }
 
-    @page {
-      size: A4;
-      margin: 15mm;
+    header {
+      background: green;
+      color: white;
+      padding: 15px;
+      position: relative;
     }
 
-    .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 180px;
-      height: 100%;
-      background: #222;
-      padding: 20px;
-    }
-
-    .sidebar button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: none;
-      cursor: pointer;
+    .login-btn {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      background: white;
+      color: green;
+      padding: 8px 15px;
+      text-decoration: none;
+      border-radius: 5px;
       font-weight: bold;
     }
 
-    .home { background: orange; color: white; }
-    .submit { background: green; color: white; }
-    .reset { background: red; color: white; }
-    .pdf { background: blue; color: white; display: none; }
-
-    .main {
-      margin-left: 200px;
-      padding: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0 10px;
+    .container {
+      margin-top: 100px;
     }
 
     .box {
+      display: inline-block;
+      width: 220px;
+      height: 120px;
+      margin: 20px;
       background: white;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 8px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px #ccc;
+      line-height: 120px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
     }
 
-    #output {
-      width: 210mm;
-      min-height: 297mm;
-      margin: 0 auto;
-      background: white;
-      padding: 15mm;
-      box-sizing: border-box;
-    }
-
-    @media print {
-      .sidebar, .no-print {
-        display: none;
-      }
-
-      .main {
-        margin: 0;
-        padding: 0;
-      }
-
-      #output {
-        margin: 0;
-        padding: 15mm;
-      }
+    .box:hover {
+      background: green;
+      color: white;
     }
   </style>
+
 </head>
 
 <body>
 
-<div class="sidebar no-print">
-  <button class="home" onclick="goHome()">Home</button>
-  <button class="reset" onclick="resetForm()">Reset</button>
-  <button class="submit" onclick="generate()">Submit</button>
-  <button class="pdf" id="printBtn" onclick="printPage()">Print</button>
+<header>
+  <h2>Deor Gram Panchayat</h2>
+  <div style="position:absolute; top:20px; right:20px;">
+  <button onclick="goAdmin()">Admin Login</button>
 </div>
-
-<div class="main">
-
-<h2 class="no-print">Legal Heir Application</h2>
-
-<div class="box no-print">
-
-<h3>Applicant</h3>
-<input id="app_name" placeholder="Applicant Name">
-<input id="app_address" placeholder="Address">
-<input id="father_name" placeholder="Father Name">
-
-<h3>Deceased</h3>
-<input id="dead_name" placeholder="Deceased Name">
-<input id="relation_name" placeholder="Father/Husband/Mother Name">
-<input id="dead_address" placeholder="Address">
-
-<h3>Number of Legal Heirs</h3>
-<input type="number" id="count" min="1" placeholder="Enter number" oninput="createHeirs()">
-
-<div id="heirs"></div>
-
-</div>
-
-<div id="output"></div>
-
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
+function goAdmin(){
+  window.location.href = "login.html";
+}
+</script>
+</header>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
-  authDomain: "deor-gp.firebaseapp.com",
-  projectId: "deor-gp"
-};
+<div class="container">
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+  <div class="box" onclick="goLegal()">
+    Legal Heir
+  </div>
 
-// SERIAL ID
-async function generateID(){
-  const snapshot = await db.collection("applications").get();
-  let max = 0;
+  <div class="box" onclick="goFamily()">
+    Family Tree
+  </div>
 
-  snapshot.forEach(doc => {
-    let id = doc.data().ackID;
-    if(id){
-      let num = parseInt(id.split("-").pop());
-      if(num > max) max = num;
-    }
-  });
+</div>
 
-  let next = max + 1;
-  return "2026-DGP-LHA-" + String(next).padStart(3,'0');
+<script>
+function goLegal(){
+  window.location = "certificate.html";
 }
 
-// RESET
-function resetForm(){
-  location.reload();
+function goFamily(){
+  alert("Family Tree Page Coming Soon");
 }
-
-// ✅ FIXED HOME BUTTON
-function goHome(){
-  window.location.href = "index.html";
-}
-
-// HEIRS
-function createHeirs(){
-  let count = parseInt(document.getElementById("count").value);
-  let container = document.getElementById("heirs");
-  container.innerHTML = "";
-
-  if(!count || count < 1) return;
-
-  for(let i=1;i<=count;i++){
-    container.innerHTML += `
-      <div class="box">
-        <h4>Legal Heir ${i}</h4>
-        <input id="name${i}" placeholder="Name">
-        <input id="rel${i}" placeholder="Relation">
-        <input id="addr${i}" placeholder="Address">
-        <input id="age${i}" placeholder="Age">
-        <input id="epic${i}" placeholder="EPIC (Optional)">
-      </div>
-    `;
-  }
-}
-
-// GENERATE
-async function generate(){
-
-  let ackID = await generateID();
-  let now = new Date();
-  let formattedDate = now.toLocaleDateString("en-GB");
-
-  function val(id){
-    return document.getElementById(id)?.value || "-";
-  }
-
-  let count = parseInt(document.getElementById("count").value) || 0;
-  let heirs = [];
-
-  for(let i=1;i<=count;i++){
-    heirs.push({
-      name: val("name"+i),
-      rel: val("rel"+i),
-      age: val("age"+i),
-      addr: val("addr"+i)
-    });
-  }
-
-  document.getElementById("output").innerHTML = `
-    <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
-
-    <p><b>Name:</b> ${val("app_name")}</p>
-    <p><b>Father:</b> ${val("father_name")}</p>
-    <p><b>Address:</b> ${val("app_address")}</p>
-
-    <h4>Deceased</h4>
-    <p><b>Name:</b> ${val("dead_name")}</p>
-    <p><b>Relation:</b> ${val("relation_name")}</p>
-
-    <h4>Legal Heirs</h4>
-
-    <table border="1" width="100%">
-      <tr><th>Sl</th><th>Name</th><th>Age</th><th>Relation</th><th>Address</th></tr>
-      ${heirs.map((h,i)=>`
-        <tr>
-          <td>${i+1}</td>
-          <td>${h.name}</td>
-          <td>${h.age}</td>
-          <td>${h.rel}</td>
-          <td>${h.addr}</td>
-        </tr>
-      `).join("")}
-    </table>
-
-    <br>
-    <p><b>Date:</b> ${formattedDate}</p>
-  `;
-
-  await db.collection("applications").add({
-    ackID,
-    applicant: val("app_name"),
-    father: val("father_name"),
-    deceased: val("dead_name"),
-    heirs,
-    createdAt: new Date()
-  });
-
-  document.getElementById("printBtn").style.display = "block";
-}
-
-// PRINT
-function printPage(){
-  window.print();
-}
-
 </script>
 
 </body>
