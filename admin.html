@@ -2,17 +2,47 @@
 <html>
 <head>
   <title>Admin Panel</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    input {
+      padding: 8px;
+      width: 250px;
+    }
+
+    button {
+      padding: 8px 12px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    table {
+      background: white;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>All Applications</h2>
+<h2>Admin Dashboard</h2>
 
 <input id="search" placeholder="Search by ID">
 <button onclick="searchData()">Search</button>
-
-<br><br>
-
 <button onclick="logout()">Logout</button>
 
 <br><br>
@@ -22,6 +52,7 @@
   <th>ID</th>
   <th>Applicant</th>
   <th>Date</th>
+  <th>Action</th>
 </tr>
 </table>
 
@@ -31,7 +62,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ✅ SAME CONFIG EVERYWHERE
+// 🔥 SAME CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
@@ -41,7 +72,7 @@ const firebaseConfig = {
   appId: "1:119940582286:web:f39346b6cc185809a232df"
 };
 
-// 🔥 INIT ONLY ONCE
+// INIT
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -54,7 +85,7 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// 📊 DATA STORE
+// DATA STORE
 let allData = [];
 
 // 🔥 LOAD DATA
@@ -64,16 +95,16 @@ async function loadData(){
 
   let table = document.getElementById("table");
 
-  // ✅ RESET TABLE
   table.innerHTML = `
     <tr>
       <th>ID</th>
       <th>Applicant</th>
       <th>Date</th>
+      <th>Action</th>
     </tr>
   `;
 
-  allData = []; // reset
+  allData = [];
 
   snapshot.forEach(doc=>{
     let d = doc.data();
@@ -88,6 +119,9 @@ async function loadData(){
             ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
             : "-"
         }</td>
+        <td>
+          <button onclick='viewCert(${JSON.stringify(d)})'>View</button>
+        </td>
       </tr>
     `;
   });
@@ -106,6 +140,7 @@ window.searchData = function(){
       <th>ID</th>
       <th>Applicant</th>
       <th>Date</th>
+      <th>Action</th>
     </tr>
   `;
 
@@ -121,9 +156,20 @@ window.searchData = function(){
             ? new Date(d.createdAt.seconds * 1000).toLocaleDateString()
             : "-"
         }</td>
+        <td>
+          <button onclick='viewCert(${JSON.stringify(d)})'>View</button>
+        </td>
       </tr>
     `;
   });
+
+}
+
+// 📄 VIEW CERTIFICATE
+window.viewCert = function(data){
+
+  localStorage.setItem("certData", JSON.stringify(data));
+  window.open("view.html", "_blank");
 
 }
 
@@ -134,7 +180,7 @@ window.logout = function(){
   });
 }
 
-// 🚀 INIT
+// INIT
 loadData();
 
 </script>
