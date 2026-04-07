@@ -3,7 +3,7 @@
 <head>
   <title>Legal Heir Application</title>
 
-  <!-- 🔥 FIREBASE ADD -->
+  <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
@@ -87,10 +87,10 @@
 <body>
 
 <div class="sidebar no-print">
-  <button class="home" onclick="goHome()">Home</button>
-  <button class="reset" onclick="resetForm()">Reset</button>
-  <button class="submit" onclick="generate()">Submit</button>
-  <button class="pdf" id="printBtn" onclick="printPage()">Print</button>
+  <button type="button" class="home" onclick="goHome()">Home</button>
+  <button type="button" class="reset" onclick="resetForm()">Reset</button>
+  <button type="button" class="submit" onclick="generate()">Submit</button>
+  <button type="button" class="pdf" id="printBtn" onclick="printPage()">Print</button>
 </div>
 
 <div class="main">
@@ -122,7 +122,7 @@
 
 <script>
 
-// 🔥 FIREBASE CONFIG
+// FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
@@ -133,9 +133,7 @@ const firebaseConfig = {
   appId: "1:119940582286:web:f39346b6cc185809a232df"
 };
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // HOME
@@ -173,8 +171,10 @@ function val(id){
   return document.getElementById(id)?.value || "-";
 }
 
-// 🔥 GENERATE + SAVE
+// GENERATE + SAVE
 function generate(){
+
+  console.log("Generate clicked");
 
   let c = parseInt(document.getElementById("count").value) || 0;
 
@@ -207,13 +207,11 @@ function generate(){
     });
   }
 
-  // 🔥 ACK ID
   let now = new Date();
   let year = now.getFullYear();
   let serial = now.getTime().toString().slice(-6);
   let ackID = `${year}-DGP-LHA-${serial}`;
 
-  // 🔥 SAVE TO FIREBASE
   db.ref("applications/" + ackID).set({
     ackID,
     applicantName: val("app_name"),
@@ -228,9 +226,23 @@ function generate(){
   })
   .then(()=>{
 
+    console.log("Saved to Firebase");
+
     document.getElementById("output").innerHTML = `
     <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
     <p style="color:green;"><b>Acknowledgement ID:</b> ${ackID}</p>
+
+    <table border="1" width="100%" cellspacing="0" cellpadding="5">
+      <tr>
+        <th>Sl</th>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Relation</th>
+        <th>Address</th>
+        <th>EPIC</th>
+      </tr>
+      ${rows}
+    </table>
     `;
 
     document.getElementById("printBtn").style.display = "block";
@@ -239,6 +251,7 @@ function generate(){
 
   })
   .catch(err=>{
+    console.error(err);
     alert("❌ Error: " + err.message);
   });
 
