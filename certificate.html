@@ -98,7 +98,7 @@
 let heirCount = 0;
 const MAX = 20;
 
-// 🔢 AUTO GENERATE
+// AUTO GENERATE
 document.getElementById("heirCountInput").addEventListener("input", function(){
 
   let count = parseInt(this.value) || 0;
@@ -146,11 +146,11 @@ document.getElementById("heirCountInput").addEventListener("input", function(){
 // validation
 function check(id){
   let el=document.getElementById(id);
-  if(el.value.trim()===""){
+  if(el && el.value.trim()===""){
     el.classList.add("error");
     return false;
   }
-  el.classList.remove("error");
+  if(el) el.classList.remove("error");
   return true;
 }
 
@@ -158,6 +158,21 @@ function val(id){
   let el=document.getElementById(id);
   return el ? el.value.trim() || "-" : "-";
 }
+
+// SAFE validation attach
+function attachLiveValidation(id){
+  let el = document.getElementById(id);
+  if(!el) return;
+
+  el.addEventListener("input", function(){
+    if(el.value.trim() !== ""){
+      el.classList.remove("error");
+    }
+  });
+}
+
+// dummy রাখা হয়েছে (remove করা হয়নি)
+function addHeir(){}
 
 // submit
 function generate(){
@@ -204,7 +219,14 @@ function generate(){
   let today=d.toLocaleDateString("en-GB");
   let ackID=`${d.getFullYear()}-DGP-LHA-${Date.now().toString().slice(-5)}`;
 
+  // gender dynamic (output text unchanged style)
+  let genderText = "son/daughter";
+  if(val("gender") === "Male") genderText = "son of";
+  else if(val("gender") === "Female") genderText = "daughter of";
+
   document.getElementById("output").innerHTML = `
+
+<button onclick="goBack()" style="margin-bottom:10px;">⬅ Back</button>
 
 <h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
 
@@ -220,7 +242,7 @@ Deor Gram Panchayat</p>
 <p style="text-align:center;"><b>Subject: Application for Issuance of Legal Heir Certificate</b></p>
 
 <p>
-I, <b>${val("app_name")}</b>, son/daughter of <b>${val("father_name")}</b>,
+I, <b>${val("app_name")}</b>, ${genderText} <b>${val("father_name")}</b>,
 resident of <b>${val("app_address")}</b>, do hereby state that 
 <b>Late ${val("dead_name")}</b>, 
 was resident of <b>${val("dead_address")}</b> I hereby declare that apart from the following persons mentioned below, there is no other legal heir of the deceased..
@@ -303,17 +325,32 @@ Signature of Pradhan
   alert("✅ Submitted Successfully");
 }
 
-// PDF
-window.downloadPDF = function(){
-  html2pdf().from(document.getElementById("output")).save("Legal_Heir_Application.pdf");
+// back
+function goBack(){
+  document.getElementById("output").innerHTML = "";
+  document.getElementById("pdfBtn").style.display = "none";
 }
 
-// init
-["app_name","father_name","gender","app_address",
- "dead_name","dead_parent","dead_address"]
-.forEach(id => attachLiveValidation(id));
+// PDF FIX
+window.downloadPDF = function(){
+  const element = document.getElementById("output");
 
-addHeir();
+  html2pdf().set({
+    margin: 5,
+    filename: 'Legal_Heir_Application.pdf',
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(element).save();
+}
+
+// SAFE INIT (NO BLANK ISSUE)
+window.onload = function(){
+  ["app_name","father_name","gender","app_address",
+   "dead_name","dead_parent","dead_address"]
+  .forEach(id => attachLiveValidation(id));
+
+  addHeir();
+};
 
 </script>
 
