@@ -7,7 +7,6 @@
     body {
       font-family: Arial;
       margin: 0;
-      padding: 0;
       background: #f4f4f4;
     }
 
@@ -33,12 +32,13 @@
       border: none;
       cursor: pointer;
       font-weight: bold;
+      color: white;
     }
 
-    .home { background: orange; color: white; }
-    .submit { background: green; color: white; }
-    .reset { background: red; color: white; }
-    .pdf { background: blue; color: white; display: none; }
+    .home { background: orange; }
+    .submit { background: green; }
+    .reset { background: red; }
+    .pdf { background: blue; display: none; }
 
     .main {
       margin-left: 200px;
@@ -61,10 +61,24 @@
     #output {
       width: 210mm;
       min-height: 297mm;
-      margin: 0 auto;
+      margin: auto;
       background: white;
       padding: 15mm;
       box-sizing: border-box;
+    }
+
+    .two-col {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+    }
+
+    .col {
+      width: 45%;
+    }
+
+    .sign {
+      margin-top: 40px;
     }
 
     @media print {
@@ -75,11 +89,6 @@
       .main {
         margin: 0;
         padding: 0;
-      }
-
-      #output {
-        margin: 0;
-        padding: 15mm;
       }
     }
   </style>
@@ -102,16 +111,16 @@
 
 <h3>Applicant</h3>
 <input id="app_name" placeholder="Applicant Name">
-<input id="app_address" placeholder="Address">
 <input id="father_name" placeholder="Father Name">
+<input id="app_address" placeholder="Address">
 
 <h3>Deceased</h3>
 <input id="dead_name" placeholder="Deceased Name">
-<input id="relation_name" placeholder="Father/Husband/Mother Name">
-<input id="dead_address" placeholder="Address">
+<input id="relation_name" placeholder="Father/Husband Name">
+<input id="dead_address" placeholder="Last Address">
 
-<h3>Number of Legal Heirs</h3>
-<input type="number" id="count" min="1" placeholder="Enter number" oninput="createHeirs()">
+<h3>No. of Legal Heirs</h3>
+<input type="number" id="count" oninput="createHeirs()">
 
 <div id="heirs"></div>
 
@@ -121,136 +130,128 @@
 
 </div>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
 <script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
-  authDomain: "deor-gp.firebaseapp.com",
-  projectId: "deor-gp"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// SERIAL ID
-async function generateID(){
-  const snapshot = await db.collection("applications").get();
-  let max = 0;
-
-  snapshot.forEach(doc => {
-    let id = doc.data().ackID;
-    if(id){
-      let num = parseInt(id.split("-").pop());
-      if(num > max) max = num;
-    }
-  });
-
-  let next = max + 1;
-  return "2026-DGP-LHA-" + String(next).padStart(3,'0');
-}
-
-// RESET
-function resetForm(){
-  location.reload();
-}
-
-// ✅ FIXED HOME BUTTON
 function goHome(){
   window.location.href = "index.html";
 }
 
-// HEIRS
+function resetForm(){
+  location.reload();
+}
+
 function createHeirs(){
-  let count = parseInt(document.getElementById("count").value);
-  let container = document.getElementById("heirs");
-  container.innerHTML = "";
+  let c = document.getElementById("count").value;
+  let h = document.getElementById("heirs");
+  h.innerHTML = "";
 
-  if(!count || count < 1) return;
-
-  for(let i=1;i<=count;i++){
-    container.innerHTML += `
+  for(let i=1;i<=c;i++){
+    h.innerHTML += `
       <div class="box">
-        <h4>Legal Heir ${i}</h4>
+        <h4>Heir ${i}</h4>
         <input id="name${i}" placeholder="Name">
+        <input id="age${i}" placeholder="Age">
         <input id="rel${i}" placeholder="Relation">
         <input id="addr${i}" placeholder="Address">
-        <input id="age${i}" placeholder="Age">
-        <input id="epic${i}" placeholder="EPIC (Optional)">
       </div>
     `;
   }
 }
 
-// GENERATE
-async function generate(){
+function val(id){
+  return document.getElementById(id)?.value || "-";
+}
 
-  let ackID = await generateID();
-  let now = new Date();
-  let formattedDate = now.toLocaleDateString("en-GB");
+function generate(){
 
-  function val(id){
-    return document.getElementById(id)?.value || "-";
-  }
+  let c = document.getElementById("count").value;
+  let rows = "";
 
-  let count = parseInt(document.getElementById("count").value) || 0;
-  let heirs = [];
-
-  for(let i=1;i<=count;i++){
-    heirs.push({
-      name: val("name"+i),
-      rel: val("rel"+i),
-      age: val("age"+i),
-      addr: val("addr"+i)
-    });
+  for(let i=1;i<=c;i++){
+    rows += `
+      <tr>
+        <td>${i}</td>
+        <td>${val("name"+i)}</td>
+        <td>${val("age"+i)}</td>
+        <td>${val("rel"+i)}</td>
+        <td>${val("addr"+i)}</td>
+      </tr>
+    `;
   }
 
   document.getElementById("output").innerHTML = `
     <h2 style="text-align:center;">Application for Legal Heir Certificate</h2>
 
-    <p><b>Name:</b> ${val("app_name")}</p>
-    <p><b>Father:</b> ${val("father_name")}</p>
-    <p><b>Address:</b> ${val("app_address")}</p>
+    <p>To,<br>
+    The Prodhan<br>
+    Deor Gram Panchayat</p>
 
-    <h4>Deceased</h4>
-    <p><b>Name:</b> ${val("dead_name")}</p>
-    <p><b>Relation:</b> ${val("relation_name")}</p>
+    <p><b>Subject:</b> Application for issuance of Legal Heir Certificate.</p>
+
+    <p><b>Name:</b> ${val("app_name")}<br>
+    <b>Father:</b> ${val("father_name")}<br>
+    <b>Address:</b> ${val("app_address")}</p>
+
+    <h4>Details of Deceased</h4>
+    <p><b>Name:</b> ${val("dead_name")}<br>
+    <b>Relation:</b> ${val("relation_name")}<br>
+    <b>Address:</b> ${val("dead_address")}</p>
 
     <h4>Legal Heirs</h4>
 
-    <table border="1" width="100%">
-      <tr><th>Sl</th><th>Name</th><th>Age</th><th>Relation</th><th>Address</th></tr>
-      ${heirs.map((h,i)=>`
-        <tr>
-          <td>${i+1}</td>
-          <td>${h.name}</td>
-          <td>${h.age}</td>
-          <td>${h.rel}</td>
-          <td>${h.addr}</td>
-        </tr>
-      `).join("")}
+    <table border="1" width="100%" cellspacing="0" cellpadding="5">
+      <tr>
+        <th>Sl</th><th>Name</th><th>Age</th><th>Relation</th><th>Address</th>
+      </tr>
+      ${rows}
     </table>
 
     <br>
-    <p><b>Date:</b> ${formattedDate}</p>
-  `;
 
-  await db.collection("applications").add({
-    ackID,
-    applicant: val("app_name"),
-    father: val("father_name"),
-    deceased: val("dead_name"),
-    heirs,
-    createdAt: new Date()
-  });
+    <p><b>Declaration:</b> I hereby declare that the above information is true.</p>
+
+    <br>
+
+    <p>Date: ____________</p>
+
+    <br><br>
+
+    <p style="text-align:right;">Signature of Applicant</p>
+
+    <br><br>
+
+    <!-- WITNESS -->
+    <div class="two-col">
+      <div class="col">
+        1. __________________<br><br>
+        2. __________________<br><br>
+        3. __________________
+      </div>
+
+      <div class="col">
+        4. __________________<br><br>
+        5. __________________<br><br>
+        6. __________________
+      </div>
+    </div>
+
+    <br><br><br>
+
+    <!-- SIGNATURE -->
+    <div class="two-col">
+      <div class="col">
+        Member Signature
+      </div>
+
+      <div class="col" style="text-align:right;">
+        Prodhan Signature
+      </div>
+    </div>
+  `;
 
   document.getElementById("printBtn").style.display = "block";
 }
 
-// PRINT
 function printPage(){
   window.print();
 }
