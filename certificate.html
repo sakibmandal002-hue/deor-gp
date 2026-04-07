@@ -159,29 +159,8 @@ function val(id){
 // GENERATE
 function generate(){
 
-  let c = parseInt(document.getElementById("count").value) || 0;
+ 
 
-  if(c <= 0){
-    alert("Please enter number of heirs");
-    return;
-  }
-
-  let rows = "";
-
-  for(let i=1;i<=c;i++){
-    rows += `
-      <tr>
-        <td>${i}</td>
-        <td>${val("name"+i)}</td>
-        <td>${val("age"+i)}</td>
-        <td>${val("rel"+i)}</td>
-        <td>${val("addr"+i)}</td>
-        <td>${val("epic"+i)}</td>
-      </tr>
-    `;
-  }
-
- function generate(){
 
   let c = parseInt(document.getElementById("count").value) || 0;
 
