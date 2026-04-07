@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Family Tree Options</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #f4f4f4;
+      padding-top: 80px;
+    }
+
+    h2 {
+      margin-bottom: 40px;
+    }
+
+    .option {
+      width: 280px;
+      margin: 15px auto;
+      padding: 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      animation: blink 1s infinite;
+      transition: 0.3s;
+    }
+
+    @keyframes blink {
+      0% { background: green; color: white; }
+      50% { background: white; color: green; border: 2px solid green; }
+      100% { background: green; color: white; }
+    }
+
+    .option:hover {
+      transform: scale(1.05);
+    }
+
+    button {
+      margin-top: 40px;
+      padding: 8px 15px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Family Tree Options</h2>
+
+<div class="option" onclick="goSibling()">
+  1. Sibling Relation <br>
+  (ভাইবোনের মধ্যে সম্পর্ক)
+</div>
+
+<div class="option" onclick="goGrand()">
+  2. Grandparent Relation <br>
+  (ঠাকুরদা / ঠাকুরমা ভিত্তিক)
+</div>
+
+<div class="option" onclick="goDistant()">
+  3. Distant Relation <br>
+  (দূর সম্পর্ক)
+</div>
+
+<button onclick="goHome()">⬅ Back to Home</button>
+
+<script>
+function goSibling() {
+  window.location.href = "sibling.html";
+}
+
+function goGrand() {
+  window.location.href = "grand.html";
+}
+
+function goDistant() {
+  window.location.href = "distant.html";
+}
+
+function goHome() {
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

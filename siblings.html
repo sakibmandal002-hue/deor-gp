@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Sibling Certificate</title>
+
+<style>
+body {
+  font-family: Arial;
+  text-align:center;
+  background:#f4f4f4;
+}
+
+.box {
+  background:white;
+  padding:15px;
+  margin:10px auto;
+  width:340px;
+  border-radius:8px;
+}
+
+input, select {
+  width:92%;
+  padding:6px;
+  margin:5px;
+}
+
+button {
+  padding:8px 15px;
+  margin:10px;
+  cursor:pointer;
+}
+
+/* Certificate */
+#certificate {
+  width:210mm;
+  min-height:297mm;
+  margin:auto;
+  padding:20mm;
+  margin-top:20px;
+
+  background:url('letterhead.jpg') no-repeat top center;
+  background-size:cover;
+
+  display:none;
+}
+
+.content {
+  text-align:left;
+  line-height:1.6;
+}
+
+.node {
+  border:1px solid black;
+  padding:8px;
+  margin:5px;
+  display:inline-block;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Sibling Relation</h2>
+
+<!-- Applicant -->
+<div class="box">
+<h4>Applicant Details</h4>
+<input id="app_name" placeholder="Name">
+<input id="app_father" placeholder="Father/Husband Name">
+<input id="app_address" placeholder="Address">
+<input id="app_age" placeholder="Age">
+<input id="app_epic" placeholder="EPIC No">
+
+<select id="app_gender">
+  <option>Male</option>
+  <option>Female</option>
+</select>
+
+<select id="app_relation">
+  <option>Son</option>
+  <option>Daughter</option>
+  <option>Wife</option>
+</select>
+
+</div>
+
+<!-- Father -->
+<div class="box">
+<h4>Father Details</h4>
+<input id="f_name" placeholder="Father Name">
+<input id="f_father" placeholder="Father's Father Name">
+<input id="f_epic" placeholder="EPIC">
+<input id="f_age" placeholder="Age">
+<select id="f_status">
+<option>Alive</option>
+<option>Deceased</option>
+</select>
+</div>
+
+<!-- Mother -->
+<div class="box">
+<h4>Mother Details</h4>
+<input id="m_name" placeholder="Mother Name">
+<input id="m_father" placeholder="Mother's Father Name">
+<input id="m_epic" placeholder="EPIC">
+<input id="m_age" placeholder="Age">
+<select id="m_status">
+<option>Alive</option>
+<option>Deceased</option>
+</select>
+</div>
+
+<!-- Siblings -->
+<div class="box">
+<h4>Siblings</h4>
+<div id="siblings"></div>
+<button onclick="addSibling()">Add Sibling</button>
+</div>
+
+<button onclick="generateCertificate()">Generate Certificate</button>
+
+<!-- Certificate -->
+<div id="certificate">
+<div class="content" id="certContent"></div>
+</div>
+
+<script>
+let count = 0;
+
+// 🔥 Auto Relation Logic
+document.getElementById("app_gender").addEventListener("change", function(){
+  let gender = this.value;
+  let relation = document.getElementById("app_relation");
+
+  if(gender === "Male"){
+    relation.value = "Son";
+  } else {
+    relation.value = "Daughter";
+  }
+});
+
+function addSibling(){
+  count++;
+  let div = document.createElement("div");
+
+  div.innerHTML = `
+    <input id="name${count}" placeholder="Name">
+    <input id="age${count}" placeholder="Age">
+    <input id="epic${count}" placeholder="EPIC No">
+    <input id="addr${count}" placeholder="Current Address">
+
+    <select id="gender${count}">
+      <option>Male</option>
+      <option>Female</option>
+    </select>
+
+    <select id="status${count}">
+      <option>Alive</option>
+      <option>Deceased</option>
+    </select>
+
+    <select id="marital${count}">
+      <option>Married</option>
+      <option>Unmarried</option>
+    </select>
+    <hr>
+  `;
+
+  document.getElementById("siblings").appendChild(div);
+}
+
+function generateCertificate(){
+
+  let siblingsHTML = "";
+
+  for(let i=1;i<=count;i++){
+    let name = document.getElementById(`name${i}`).value;
+
+    if(name){
+      siblingsHTML += `
+      <div class="node">
+        <b style="font-size:16px;">${name}</b><br>
+        Gender: ${document.getElementById(`gender${i}`).value}<br>
+        Age: ${document.getElementById(`age${i}`).value}<br>
+        EPIC: ${document.getElementById(`epic${i}`).value}<br>
+        Address: ${document.getElementById(`addr${i}`).value}<br>
+        Marital Status: ${document.getElementById(`marital${i}`).value}<br>
+        Status: ${document.getElementById(`status${i}`).value}
+      </div>`;
+    }
+  }
+
+  let html = `
+  <h3 style="text-align:center;">FAMILY TREE CERTIFICATE</h3>
+
+  <p><b>Name of Applicant:</b> ${app_name.value}</p>
+  <p><b>Father/Husband Name:</b> ${app_father.value}</p>
+  <p><b>Address:</b> ${app_address.value}</p>
+  <p><b>Age:</b> ${app_age.value}</p>
+  <p><b>EPIC No:</b> ${app_epic.value}</p>
+
+  <br>
+
+  <p>
+  <b>Father:</b> ${f_name.value}<br>
+  S/O: ${f_father.value}<br>
+  EPIC: ${f_epic.value}, Age: ${f_age.value}, Status: ${f_status.value}
+  </p>
+
+  <p>
+  <b>Mother:</b> ${m_name.value}<br>
+  D/O: ${m_father.value}<br>
+  EPIC: ${m_epic.value}, Age: ${m_age.value}, Status: ${m_status.value}
+  </p>
+
+  <br>
+
+  <p>
+  This is to certify that the family composition (Family Tree) of 
+  <b>${app_name.value}</b>, 
+  <b>${document.getElementById("app_relation").value}</b> of <b>${app_father.value}</b>, 
+  resident of ${app_address.value}, 
+  under this Gram Panchayat, is as follows:
+  </p>
+
+  <br>
+
+  ${siblingsHTML}
+
+  <br><br>
+
+  <p><b>Verification Statement:</b></p>
+  <p>
+  It is verified that the above named person is a resident of the said address.  
+  If the applicant is male, he is a citizen by birth.  
+  If the applicant is wife, she is a citizen by marriage.
+  </p>
+
+  <br><br><br>
+
+  <p style="text-align:right;">
+  Signature of Pradhan
+  </p>
+  `;
+
+  document.getElementById("certContent").innerHTML = html;
+  document.getElementById("certificate").style.display = "block";
+
+  window.scrollTo(0, document.body.scrollHeight);
+}
+</script>
+
+</body>
+</html>
