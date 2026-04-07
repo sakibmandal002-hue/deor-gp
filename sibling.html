@@ -44,7 +44,6 @@ button {
   padding:20mm;
   background:white;
   display:none;
-
   background:url('letterhead.jpg') no-repeat top center;
   background-size:100% auto;
 }
@@ -66,72 +65,24 @@ button {
   button { display:none; }
 }
 
-/* Tree */
-.parent-box {
-  border:2px solid black;
-  background:#f2f2f2;
-  padding:10px;
-  display:inline-block;
-  margin:10px;
-  width:200px;
+/* Tables */
+table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
 }
 
-.sibling-box {
+th, td {
   border:1px solid black;
-  background:#f2f2f2;
-  padding:8px;
-  width:160px;
+  padding:6px;
 }
 
-.line {
-  width:2px;
-  height:40px;
-  background:black;
-  margin:auto;
-}
-
-.row-line {
-  height:2px;
-  background:black;
-  margin:10px auto;
-}
-
-.v-line {
-  width:2px;
-  height:30px;
-  background:black;
-  margin:auto;
-}
-
-.siblings-wrapper {
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  max-width:750px;
-  margin:auto;
-}
-
-.sibling-item {
-  width:170px;
-  margin:10px;
-  text-align:center;
-}
-
-.number {
-  font-weight:bold;
+th {
+  background:#ddd;
 }
 
 .app-left {
   text-align:left;
-}
-
-.tree-center {
-  margin-bottom:40px;
-}
-
-.print-btn {
-  background:green;
-  color:white;
 }
 </style>
 </head>
@@ -140,7 +91,6 @@ button {
 
 <h2>Family Tree Form</h2>
 
-<!-- Applicant -->
 <div class="box">
 <h3>Applicant Details</h3>
 <input id="app_name" placeholder="Applicant Name">
@@ -161,7 +111,6 @@ button {
 </select>
 </div>
 
-<!-- Father -->
 <div class="box">
 <h3>Father Details</h3>
 <input id="f_name" placeholder="Father Name">
@@ -173,7 +122,6 @@ button {
 </select>
 </div>
 
-<!-- Mother -->
 <div class="box">
 <h3>Mother Details</h3>
 <input id="m_name" placeholder="Mother Name">
@@ -185,7 +133,6 @@ button {
 </select>
 </div>
 
-<!-- Siblings -->
 <div class="box">
 <h3>Siblings</h3>
 <input id="count" type="number" placeholder="No. of siblings">
@@ -193,13 +140,11 @@ button {
 <div id="siblingsForm"></div>
 </div>
 
-<!-- Buttons -->
 <div class="btn-row">
-  <button onclick="generate()">Generate Certificate</button>
-  <button class="print-btn" onclick="window.print()">Print</button>
+<button onclick="generate()">Generate Certificate</button>
+<button onclick="window.print()">Print</button>
 </div>
 
-<!-- Certificate -->
 <div id="certificate">
 <div id="output"></div>
 </div>
@@ -239,43 +184,24 @@ function createSiblings(){
 
 function generate(){
 
-  let perRow = 4;
-  let rowHTML = "";
-  let siblingsHTML = "";
+  let siblingsRows = "";
 
   for(let i=1;i<=count;i++){
     let name = document.getElementById("name"+i).value;
 
     if(name){
-
-      rowHTML += `
-      <div class="sibling-item">
-        <div class="v-line"></div>
-        <div class="number">${i}</div>
-        <div class="sibling-box">
-          <b>${name}</b><br>
-          ${document.getElementById("gender"+i).value}<br>
-          Age: ${document.getElementById("age"+i).value}<br>
-          EPIC: ${document.getElementById("epic"+i).value}<br>
-          ${document.getElementById("addr"+i).value}<br>
-          ${document.getElementById("marital"+i).value}<br>
-          ${document.getElementById("status"+i).value}
-        </div>
-      </div>`;
-
-      if(i % perRow === 0){
-        siblingsHTML += `
-        <div class="row-line" style="width:${perRow*180}px;"></div>
-        <div class="siblings-wrapper">${rowHTML}</div>`;
-        rowHTML = "";
-      }
+      siblingsRows += `
+      <tr>
+        <td>${i}</td>
+        <td>${name}</td>
+        <td>${document.getElementById("gender"+i).value}</td>
+        <td>${document.getElementById("age"+i).value}</td>
+        <td>${document.getElementById("marital"+i).value}</td>
+        <td>${document.getElementById("status"+i).value}</td>
+        <td>${document.getElementById("epic"+i).value}</td>
+        <td>${document.getElementById("addr"+i).value}</td>
+      </tr>`;
     }
-  }
-
-  if(rowHTML !== ""){
-    siblingsHTML += `
-    <div class="row-line" style="width:600px;"></div>
-    <div class="siblings-wrapper">${rowHTML}</div>`;
   }
 
   let relationType = "by relation";
@@ -291,63 +217,65 @@ function generate(){
   }
 
   let html = `
-  <h3 style="text-align:center; margin-top:120px;">
+  <div style="margin-top:120px; font-size:15px; line-height:1.6;">
+
+  <h3 style="text-align:center; text-decoration:underline;">
   FAMILY TREE CERTIFICATE
   </h3>
 
-  <div class="app-left">
-    <p style="font-weight:bold;">
-    Name: ${app_name.value}<br>
-    ${app_relation.value} of ${app_father.value}<br>
-    Address: ${app_address.value}<br>
-    EPIC: ${app_epic.value}, Age: ${app_age.value}<br>
-    Gender: ${app_gender.value}<br>
-    Marital Status: ${app_marital.value}
-    </p>
-  </div>
-
-  <p class="app-left">
-  This is to certify that the family composition of 
-  <b>${app_name.value}</b>, ${app_relation.value} of 
-  <b>${app_father.value}</b>, resident of ${app_address.value}, 
-  is as follows:
-  </p>
-
-  <div class="tree-center">
-
-    <div class="parent-box">
-      <b>Father</b><br>
-      ${f_name.value}<br>
-      S/O ${f_father.value}<br>
-      EPIC: ${f_epic.value}<br>
-      ${f_status.value}
-    </div>
-
-    <div class="parent-box">
-      <b>Mother</b><br>
-      ${m_name.value}<br>
-      D/O ${m_father.value}<br>
-      EPIC: ${m_epic.value}<br>
-      ${m_status.value}
-    </div>
-
-    <div class="line"></div>
-
-    ${siblingsHTML}
-
+  <div class="app-left" style="margin-top:25px;">
+    <b>Name:</b> ${app_name.value}<br>
+    <b>${app_relation.value} of:</b> ${app_father.value}<br>
+    <b>Address:</b> ${app_address.value}<br>
+    <b>EPIC:</b> ${app_epic.value}, Age: ${app_age.value}<br>
+    <b>Gender:</b> ${app_gender.value}<br>
+    <b>Marital Status:</b> ${app_marital.value}
   </div>
 
   <p class="app-left" style="margin-top:20px;">
-  It is hereby verified that from the above family composition, it is evident that 
-  <b>${app_name.value}</b> is a resident of this Gram Panchayat ${relationType}. 
+  This is to certify that the family composition of 
+  <b>${app_name.value}</b> is detailed below:
+  </p>
 
-  In case of daughter, if married then she is considered resident by marriage, 
-  and if unmarried then by birth.
+  <table style="margin-top:20px;">
+    <tr>
+      <th colspan="2">Parents Details</th>
+    </tr>
+    <tr>
+      <td><b>Father</b><br>${f_name.value}<br>Status: ${f_status.value}</td>
+      <td><b>Mother</b><br>${m_name.value}<br>Status: ${m_status.value}</td>
+    </tr>
+  </table>
+
+  <h4 style="margin-top:30px; text-align:left;">
+  Children Details
+  </h4>
+
+  <table>
+    <tr>
+      <th>Sl</th>
+      <th>Name</th>
+      <th>Gender</th>
+      <th>Age</th>
+      <th>Marital</th>
+      <th>Status</th>
+      <th>EPIC</th>
+      <th>Address</th>
+    </tr>
+
+    ${siblingsRows}
+
+  </table>
+
+  <p class="app-left" style="margin-top:25px;">
+  It is hereby verified that <b>${app_name.value}</b> is a resident ${relationType}.
   </p>
 
   <p style="text-align:right; margin-top:80px;">
   Signature of Pradhan
   </p>
+
+  </div>
   `;
 
   document.getElementById("output").innerHTML = html;
