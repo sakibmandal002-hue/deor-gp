@@ -1,149 +1,207 @@
-<script type="module">
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Certificate View</title>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
 
-// ✅ YOUR FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
-  authDomain: "deor-gp.firebaseapp.com",
-  databaseURL: "https://deor-gp-default-rtdb.firebaseio.com",
-  projectId: "deor-gp",
-  storageBucket: "deor-gp.firebasestorage.app",
-  messagingSenderId: "119940582286",
-  appId: "1:119940582286:web:f39346b6cc185809a232df"
-};
+    #paper {
+      width: 210mm;
+      min-height: 297mm;
+      margin: auto;
+      background: white;
+      padding: 20mm;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
 
-// ✅ INIT
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    /* 🔥 FULL PAGE LETTERHEAD */
+    #paper::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
 
-// ✅ URL থেকে ID নাও (certificate.html?id=XXXX)
-const urlParams = new URLSearchParams(window.location.search);
-const docId = urlParams.get("id");
+      width: 100%;
+      height: 100%;
 
-// ✅ VALUE SAFE
+      background-image: url("letterhead.jpg");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 100%;
+
+      opacity: 1;
+
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 6px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    button {
+      margin: 10px;
+      padding: 8px 15px;
+      cursor: pointer;
+    }
+
+    @media print {
+      body { background: white; }
+      button { display: none; }
+
+      #paper {
+        margin: 0;
+        width: 210mm;
+        height: 297mm;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<button onclick="window.print()">🖨 Print</button>
+
+<div id="paper">
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+
+// ✅ LOAD DATA
+let data = JSON.parse(localStorage.getItem("certData"));
+
+if(!data){
+  document.body.innerHTML = "<h2>No Data Found</h2>";
+  throw new Error("No Data");
+}
+
+// ✅ VALUE CHECK
 function val(v){
   return v ? v : "-";
 }
 
-// 🔥 LOAD DATA FROM FIREBASE
-async function loadData(){
-
-  if(!docId){
-    document.body.innerHTML = "<h2>No ID Provided</h2>";
-    return;
-  }
-
-  try {
-    const docRef = doc(db, "certificates", docId);
-    const docSnap = await getDoc(docRef);
-
-    if(!docSnap.exists()){
-      document.body.innerHTML = "<h2>No Data Found</h2>";
-      return;
-    }
-
-    const data = docSnap.data();
-    renderCertificate(data);
-
-  } catch (err){
-    console.error(err);
-    document.body.innerHTML = "<h2>Error Loading Data</h2>";
-  }
-}
-
-// 🔥 RELATION TEXT
-function relationText(data){
+// 🔥 NEW RELATION FORMAT (ADD ONLY)
+function relationText(){
   if(data.relType && data.relName){
     return data.relType + " " + data.relName;
   }
   return val(data.relation);
 }
 
-// 🔥 RENDER
-function renderCertificate(data){
+// ✅ HEIRS TABLE
+let heirsRows = "";
 
-  let heirsList = data.heirs || data.heirList || data.legalHeirs || [];
-
-  let heirsRows = "";
-
-  if(heirsList.length > 0){
-    heirsList.forEach((h,i)=>{
-      heirsRows += `
-        <tr>
-          <td>${i+1}</td>
-          <td>${val(h.name)}</td>
-          <td>${val(h.age)}</td>
-          <td>${val(h.rel || h.relation)}</td>
-          <td>${val(h.addr || h.address)}</td>
-          <td>${val(h.epic || h.epicNo) || "N/A"}</td>
-        </tr>
-      `;
-    });
-  } else {
-    heirsRows = `<tr><td colspan="6" style="text-align:center;">No Heir Data</td></tr>`;
-  }
-
-  document.getElementById("content").innerHTML = `
-
-    <h2 style="text-align:center; margin-top:120px;">
-      LEGAL HEIR CERTIFICATE
-    </h2>
-
-    <p style="text-align:center;"><b>TO WHOM IT MAY CONCERN</b></p>
-
-    <p style="text-align:justify;">
-    This is to certify that Late <b>${val(data.deceased)}</b>, 
-    <b>${relationText(data)}</b>, was a permanent resident of 
-    <b>${val(data.deadAddress)}</b>.
-    </p>
-
-    <p style="text-align:justify;">
-    He/She passed away and leaving behind the following legal heirs:
-    </p>
-
-    <br>
-
-    <table border="1" width="100%">
+if(data.heirs && data.heirs.length > 0){
+  data.heirs.forEach((h,i)=>{
+    heirsRows += `
       <tr>
-        <th>Sl</th>
-        <th>Name</th>
-        <th>Age</th>
-        <th>Relation</th>
-        <th>Address</th>
-        <th>EPIC</th>
+        <td>${i+1}</td>
+        <td>${val(h.name)}</td>
+        <td>${val(h.age)}</td>
+        <td>${val(h.rel)}</td>
+        <td>${val(h.addr)}</td>
+        <td>${val(h.epic) || "N/A"}</td>
       </tr>
-
-      ${heirsRows}
-
-    </table>
-
-    <br><br>
-
-    <p style="text-align:justify;">
-    It is further certified that, upon receipt of the application and after verification of records and field enquiry, it has been found that there are no other legal heirs except those mentioned above.
-    </p>
-
-    <p>
-    This certificate is issued to <b>${val(data.applicant)}</b> for official purpose.
-    </p>
-
-    <br><br>
-
-    <p><b>Place:</b> Deor Gram Panchayat</p>
-
-    <br><br><br><br>
-
-    <div style="position:absolute; bottom:40px; right:40px; text-align:right;">
-      ___________________________<br>
-      Signature of Issuing Authority
-    </div>
-
-  `;
+    `;
+  });
+} else {
+  heirsRows = `<tr><td colspan="6" style="text-align:center;">No Heir Data</td></tr>`;
 }
 
-// 🚀 RUN
-loadData();
+// ✅ FINAL CONTENT
+document.getElementById("content").innerHTML = `
+
+<h2 style="text-align:center; margin-top:120px;">
+  LEGAL HEIR CERTIFICATE
+</h2>
+
+<p style="text-align:center;"><b>TO WHOM IT MAY CONCERN</b></p>
+
+<p style="text-align:justify;">
+This is to certify that Late <b>${val(data.deceased)}</b>, 
+<b>${relationText()}</b>, was a permanent resident of 
+<b>${val(data.deadAddress)}</b>.
+</p>
+
+<p style="text-align:justify;">
+He/She passed away and leaving behind the following legal heirs:
+</p>
+
+<br>
+
+<table border="1" width="100%">
+<tr>
+  <th>Sl</th>
+  <th>Name</th>
+  <th>Age</th>
+  <th>Relation</th>
+  <th>Address</th>
+  <th>EPIC</th>
+</tr>
+
+${heirsRows}
+
+</table>
+
+<br><br>
+
+<p style="text-align:justify;">
+It is further certified that, upon receipt of the application and after verification of records and field enquiry, it has been found that there are no other legal heirs, successors, or surviving members of the deceased except those mentioned above.
+
+<br>
+
+<p>
+This certificate is issued to <b>${val(data.applicant)}</b> for official purpose.
+</p>
+
+<br><br>
+
+<p><b>Place:</b> Deor Gram Panchayat</p>
+
+<br><br><br><br>
+
+<div style="
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  text-align: right;
+">
+  ___________________________<br>
+  Signature of Issuing Authority
+</div>
+
+`;
 
 </script>
+
+</body>
+</html>   application a put kora  legal heir er data gulo ekhane show korachhe na
