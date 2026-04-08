@@ -102,7 +102,7 @@
 
 <script>
 
-// FIREBASE INIT (UNCHANGED CONFIG)
+// FIREBASE INIT
 firebase.initializeApp({
   apiKey: "AIzaSyD7DaIvAcwQbnu6UA00ENQ438cWSWzxKio",
   authDomain: "deor-gp.firebaseapp.com",
@@ -117,6 +117,7 @@ const db = firebase.firestore();
 let heirCount = 0;
 const MAX = 20;
 
+// 🔥 CREATE HEIR INPUTS
 document.getElementById("heirCountInput").addEventListener("input", function(){
 
   let count = parseInt(this.value) || 0;
@@ -154,16 +155,19 @@ document.getElementById("heirCountInput").addEventListener("input", function(){
 
 });
 
+// VALUE
 function val(id){
   let el=document.getElementById(id);
   return el ? el.value.trim() || "-" : "-";
 }
 
+// BACK
 function goBack(){
   document.getElementById("output").innerHTML = "";
   document.getElementById("pdfBtn").style.display = "none";
 }
 
+// RESET
 function resetForm(){
   document.querySelectorAll("input").forEach(el => el.value = "");
   document.querySelectorAll("select").forEach(el => el.value = "");
@@ -173,6 +177,7 @@ function resetForm(){
   heirCount = 0;
 }
 
+// 🔥 MAIN GENERATE FUNCTION
 function generate(){
 
   if(!document.getElementById("agreeCheck").checked){
@@ -186,15 +191,28 @@ function generate(){
   }
 
   let rows="";
+  let heirsArray=[];
+
   for(let i=1;i<=heirCount;i++){
+
+    let obj={
+      name: val("name"+i),
+      age: val("age"+i),
+      rel: val("rel"+i),
+      addr: val("addr"+i),
+      epic: val("epic"+i)
+    };
+
+    heirsArray.push(obj);
+
     rows+=`
     <tr>
       <td>${i}</td>
-      <td>${val("name"+i)}</td>
-      <td>${val("age"+i)}</td>
-      <td>${val("rel"+i)}</td>
-      <td>${val("addr"+i)}</td>
-      <td>${val("epic"+i)}</td>
+      <td>${obj.name}</td>
+      <td>${obj.age}</td>
+      <td>${obj.rel}</td>
+      <td>${obj.addr}</td>
+      <td>${obj.epic}</td>
     </tr>`;
   }
 
@@ -205,9 +223,8 @@ function generate(){
   if(val("gender") === "Male") genderText = "son of";
   else if(val("gender") === "Female") genderText = "daughter of";
 
-  // 🔒 OUTPUT (UNCHANGED)
+  // OUTPUT (UNCHANGED)
   document.getElementById("output").innerHTML = `
-
 <h2 style="text-align:center;">LEGAL HEIR APPLICATION FORM</h2>
 
 <div style="text-align:center; margin-bottom:15px; font-weight:bold;">
@@ -301,18 +318,30 @@ Signature of Pradhan
 
   document.getElementById("pdfBtn").style.display = "inline-block";
 
-  // 🔥 FIRESTORE SAVE (MATCH DASHBOARD)
+  // 🔥 SAVE FULL DATA TO FIREBASE
   db.collection("applications").add({
     applicant: val("app_name"),
+    father_name: val("father_name"),
+    gender: val("gender"),
+    app_address: val("app_address"),
+
+    deceased: val("dead_name"),
+    dead_parent: val("dead_parent"),
+    deadAddress: val("dead_address"),
+
+    heirs: heirsArray,
+
     status: "pending",
     createdAt: new Date()
+  }).then(docRef=>{
+    window.location.href = `certificate.html?id=${docRef.id}`;
   });
 
   alert("✅ Submitted Successfully");
 }
 
 // PDF
-window.downloadPDF = function(){
+function downloadPDF(){
   const element = document.getElementById("output");
 
   html2pdf().set({
@@ -321,7 +350,7 @@ window.downloadPDF = function(){
     html2canvas: { scale: 2 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   }).from(element).save();
-};
+}
 
 </script>
 
